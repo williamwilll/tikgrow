@@ -42,6 +42,7 @@ a.follow{display:block;text-align:center;background:var(--pink);color:#fff;paddi
 <input id="lgEmail" placeholder="Seu e-mail" type="text">
 <input id="lgTik" placeholder="@seu_tiktok ex: @larisantosstyle" type="text">
 <div class="pwWrap"><input id="lgPass" placeholder="Senha" type="password"><button class="pwEye" id="pwBtn" onclick="verSenha()" type="button">👁️</button></div>
+<input id="lgToken" placeholder="Token de acesso (só clientes — admin dispensa)">
 <button id="lgBtn" onclick="doAuth()">Entrar</button>
 <p class="small" id="lgMsg" style="margin-top:8px"></p>
 </div></div>
@@ -67,6 +68,13 @@ a.follow{display:block;text-align:center;background:var(--pink);color:#fff;paddi
 <div class="stats"><div class="stat"><b id="sC">124</b><small>seguidores</small></div><div class="stat"><b id="sV">0</b><small>views 30d</small></div><div class="stat"><b id="sL">0</b><small>curtidas</small></div></div>
 <div class="stats" style="margin-top:8px"><div class="stat"><b id="sP">12%</b><small>meta</small></div><div class="stat"><b id="sF">876</b><small>faltam</small></div><div class="stat"><b id="sG">1000</b><small>alvo</small></div></div>
 <div id="outEvo" class="small" style="margin-top:8px"></div>
+</div>
+
+<div class="card" id="adminBox" style="display:none"><h2>🔑 Tokens de acesso 🎟️</h2>
+<p class="desc">Só você (admin) vê isto. Gere e envie ao cliente.</p>
+<div class="row"><select id="tkDays"><option value="7">7 dias</option><option value="30" selected>30 dias</option><option value="90">90 dias</option><option value="365">1 ano</option></select><button class="cyan" onclick="novoToken()">Gerar token</button></div>
+<div id="outToken"></div>
+<div id="outTokens"></div>
 </div>
 
 <div class="sec-label" id="sec-criar">CRIAR CONTEÚDO</div>
@@ -198,6 +206,16 @@ a.follow{display:block;text-align:center;background:var(--pink);color:#fff;paddi
 <script>
 const U='larisantosstyle';
 const ADMIN_EMAIL='willsradd@gmail.com';
+const TOKEN_SALT='TikGrow2026LariShop';
+function cyrb(s){let h1=0xdeadbeef,h2=0x41c6ce57;for(let i=0;i<s.length;i++){let c=s.charCodeAt(i);h1=Math.imul(h1^c,2654435761);h2=Math.imul(h2^c,1597334677)}h1=Math.imul(h1^(h1>>>16),2246822507)^Math.imul(h2^(h2>>>13),3266489909);h2=Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909);return 4294967296*(2097151&h2)+(h1>>>0)}
+function diaNum(){return Math.floor(Date.now()/864e5)}
+function genToken(days){days=Math.max(1,+days||30);let A='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',r='';for(let i=0;i<6;i++)r+=A[Math.floor(Math.random()*A.length)];let ex=(diaNum()+days).toString(36).toUpperCase().padStart(4,'0');let sm=cyrb(TOKEN_SALT+r+ex).toString(36).toUpperCase().replace(/[^A-Z0-9]/g,'').slice(-4).padStart(4,'0');return {t:'TG-'+r+'-'+sm+'-'+ex,exp:diaNum()+days}}
+function parseToken(t){t=String(t||'').trim().toUpperCase().replace(/[^A-Z0-9]/g,'');if(t.slice(0,2)!='TG')return null;let b=t.slice(2);if(b.length!=14)return null;let R=b.slice(0,6),S=b.slice(6,10),E=b.slice(10,14);let s2=cyrb(TOKEN_SALT+R+E).toString(36).toUpperCase().replace(/[^A-Z0-9]/g,'').slice(-4).padStart(4,'0');if(s2!==S)return null;let ex=parseInt(E,36);return {exp:ex,ok:ex>=diaNum()}}
+async function tokenValido(t){try{let c=new AbortController();setTimeout(()=>c.abort(),4000);let r=await fetch(TIKTOK_API+'/api/token/check',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:t}),signal:c.signal});let j=await r.json();if(typeof j.ok=='boolean')return j}catch(e){}let p=parseToken(t);return p&&p.ok?{ok:true,exp:p.exp,local:true}:{ok:false}}
+function tokOk(){let p=parseToken(localStorage.getItem('tt_token')||'');return !!(p&&p.ok)}
+function novoToken(){let g=genToken(tkDays.value);let h=JSON.parse(localStorage.getItem('tt_tokens')||'[]');h.unshift({t:g.t,exp:g.exp,at:new Date().toLocaleString('pt-BR')});localStorage.setItem('tt_tokens',JSON.stringify(h));outToken.innerHTML=`<div class="idea" id="tkNew"><span class="badge">TOKEN NOVO</span><br><b>${g.t}</b><br><span class="small">Válido até ${new Date(g.exp*864e5).toLocaleDateString('pt-BR')}</span><br><button class="copy" onclick="copyTxt('tkNew')">Copiar token</button></div>`;renderTokens();addPts(10)}
+function renderTokens(){let box=document.getElementById('outTokens');if(!box)return;let h=JSON.parse(localStorage.getItem('tt_tokens')||'[]');box.innerHTML=h.length?h.map((x,i)=>{let ok=(parseToken(x.t)||{}).ok;return `<div class="idea" id="tk${i}">${ok?'':'<span class="badge">EXPIRADO</span> '}<b>${esc(x.t)}</b><br><span class="small">Expira ${new Date(x.exp*864e5).toLocaleDateString('pt-BR')}</span><br><div class="row"><button class="copy" onclick="copyTxt('tk${i}')">Copiar</button><button class="copy" onclick="delToken(${i})">Revogar</button></div></div>`}).join(''):'<p class="small">Nenhum token gerado.</p>'}
+function delToken(i){let h=JSON.parse(localStorage.getItem('tt_tokens')||'[]');h.splice(i,1);localStorage.setItem('tt_tokens',JSON.stringify(h));renderTokens()}
 const TIKTOK_KEY='awfyanz7y2bffl7m',TIKTOK_RED='https://tikgrow.onrender.com/',TIKTOK_SCOPES='user.info.profile,user.info.stats,video.list',TIKTOK_API='https://tikgrow-api.onrender.com';
 function conectarTikTok(){location.href='https://www.tiktok.com/v2/auth/authorize/?client_key='+TIKTOK_KEY+'&scope='+encodeURIComponent(TIKTOK_SCOPES)+'&response_type=code&redirect_uri='+encodeURIComponent(TIKTOK_RED)+'&state=tikgrow'}
 async function checkTikCode(){let q=new URLSearchParams(location.search);let c=q.get('code');history.replaceState({},'',location.pathname);if(!c)return;tikAuth.textContent='Conectando ao TikTok...';try{
@@ -212,9 +230,10 @@ let mode='in';
 function tab(m){mode=m;tabIn.className=m=='in'?'':'ghost';tabUp.className=m=='up'?'':'ghost';lgName.style.display=m=='up'?'block':'none';lgBtn.textContent=m=='up'?'Criar conta':'Entrar';lgMsg.textContent=''}
 function getUsers(){try{return JSON.parse(localStorage.getItem('tt_users')||'{}')}catch(e){return{}}}
 function copyTxt(id){let el=document.getElementById(id);if(!el)return;navigator.clipboard.writeText(el.innerText);alert('Copiado!')}
-function doAuth(){
+async function doAuth(){
  let e=(lgEmail.value||'').trim().toLowerCase(),p=lgPass.value||'',n=(lgName.value||'').trim(),t=(lgTik.value||'').trim().replace('@','');
  if(!e||!p||!t){lgMsg.textContent='Preencha e-mail, @tiktok e senha.';return}
+ if(e!=ADMIN_EMAIL){let tk=(lgToken.value||'').trim();if(!tk){lgMsg.textContent='Cliente: informe o token de acesso.';return}lgMsg.textContent='Validando token...';let v=await tokenValido(tk);if(!v||!v.ok){lgMsg.textContent='Token inválido ou expirado. Fale com o admin.';return}localStorage.setItem('tt_token',tk)}
  let users=getUsers();
  if(mode=='up'){if(users[e]){lgMsg.textContent='Já existe. Clique Entrar.';return}users[e]={p:btoa(p),n:n||e,tik:t,at:Date.now()}}
  else{if(!users[e]){users[e]={p:btoa(p),n:e,tik:t,at:Date.now()}}else{if(users[e].p!==btoa(p)){lgMsg.textContent='Senha errada.';return}users[e].tik=t}}
@@ -223,7 +242,7 @@ function doAuth(){
 }
 function isAdmin(){try{return (localStorage.getItem('tt_session')||'')==ADMIN_EMAIL}catch(e){return false}}
 function verSenha(){let p=lgPass.type=='password';lgPass.type=p?'text':'password';pwBtn.textContent=p?'🙈':'👁️'}
-function checkAuth(){let s=localStorage.getItem('tt_session'),u=getUsers();if(s&&u[s]){loginGate.style.display='none';app.style.display='block';userHi.textContent='Logada: '+(u[s].n||s)+' • @'+u[s].tik+(s==ADMIN_EMAIL?' • ADMIN':'');fixTik.value=u[s].tik}else{loginGate.style.display='flex';app.style.display='none'}}
+function checkAuth(){let s=localStorage.getItem('tt_session'),u=getUsers();let adm=s==ADMIN_EMAIL;if(s&&u[s]&&(adm||tokOk())){loginGate.style.display='none';app.style.display='block';userHi.textContent='Logada: '+(u[s].n||s)+' • @'+u[s].tik+(adm?' • ADMIN':'');fixTik.value=u[s].tik;if(adm)renderTokens()}else{localStorage.removeItem('tt_session');loginGate.style.display='flex';app.style.display='none'}}
 function doLogout(){localStorage.removeItem('tt_session');checkAuth()}
 async function puxarDadosConta(manual){
  let s=localStorage.getItem('tt_session'),u=getUsers(),tik=((u[s]&&u[s].tik)||fixTik.value||U).replace('@','').trim();if(!tik)return;
@@ -294,8 +313,8 @@ function addPts(p){let s=(+localStorage.getItem('tt_pts')||0)+p;localStorage.set
 function renderGame(){let s=+localStorage.getItem('tt_pts')||0,c=+current.value||0;gPts.textContent=s;gNivel.textContent=s>300?'Viral':s>100?'Crescendo':'Iniciante';gFalta.textContent=Math.max(0,1000-c);outSelos.textContent='Selos: '+((s>=30?'🎬 ':'')+(s>=150?'🔥 ':'')+(c>=1000?'📡 LIVE ':'' )||'poste p/ ganhar')}
 function salvarPix(){localStorage.setItem('tt_pix',pixKey.value||'');alert('Pix salvo!')}
 function showTab(t){localStorage.setItem('tt_tab',t);document.querySelectorAll('#mainNav a').forEach(a=>a.classList.toggle('on',a.dataset.tab==t));
-let map={dash:[/dashboard|o que fazer/i],criar:[/roteiro|semana|legenda/i],studio:[/prompt vídeo|prompt imagem|meu avatar/i],videoia:[/prompt vídeo/i],imagem:[/prompt imagem/i],shop:[/shop/i],video:[/análise de vídeos/i],top:[/análise de vídeos/i],agenda:[/checklist|agenda|histórico|capas|pontos|vendas/i],perfil:[/análise de perfil/i]};
-document.querySelectorAll('.wrap#app .card').forEach(c=>{let h=(c.querySelector('h2')||{}).textContent||'';let pats=map[t]||[];c.style.display=pats.some(r=>r.test(h))?'':'none'});
+let map={dash:[/dashboard|o que fazer|tokens/i],criar:[/roteiro|semana|legenda/i],studio:[/prompt vídeo|prompt imagem|meu avatar/i],videoia:[/prompt vídeo/i],imagem:[/prompt imagem/i],shop:[/shop/i],video:[/análise de vídeos/i],top:[/análise de vídeos/i],agenda:[/checklist|agenda|histórico|capas|pontos|vendas/i],perfil:[/análise de perfil/i]};
+document.querySelectorAll('.wrap#app .card').forEach(c=>{let h=(c.querySelector('h2')||{}).textContent||'';let pats=map[t]||[];let adm=c.id=='adminBox';c.style.display=(pats.some(r=>r.test(h))&&(!adm||isAdmin()))?'':'none'});
 document.querySelectorAll('.wrap#app .sec-label').forEach(s=>{s.style.display='none'});if(t=='perfil'&&bioTxt.value)analisarPerfil();window.scrollTo({top:0});return false}
 function salvarSnap(){let e={d:new Date().toLocaleDateString('pt-BR'),c:+current.value||0,v:+views30.value||0,l:+likesTotal.value||0};let h=JSON.parse(localStorage.getItem('tt_evo')||'[]');h.push(e);localStorage.setItem('tt_evo',JSON.stringify(h.slice(-30)));renderEvo(true)}
 function limparSnap(){localStorage.removeItem('tt_evo');renderEvo(true)}
