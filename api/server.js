@@ -9,6 +9,11 @@ const CLIENT_SECRET = process.env.TIKTOK_CLIENT_SECRET || '';
 const REDIRECT_URI = process.env.REDIRECT_URI || 'https://tikgrow.onrender.com/';
 
 app.get('/api/health', (req, res) => res.json({ ok: true }));
+app.get('/api/config', (req, res) => res.json({
+  wa: process.env.WA_NUMBER || '',
+  pm: process.env.PRICE_M || '',
+  ps: process.env.PRICE_S || ''
+}));
 
 const TOKEN_SECRET = process.env.TOKEN_SECRET || 'TikGrow2026LariShop';
 function cyrb(s){let h1=0xdeadbeef,h2=0x41c6ce57;for(let i=0;i<s.length;i++){let c=s.charCodeAt(i);h1=Math.imul(h1^c,2654435761);h2=Math.imul(h2^c,1597334677)}h1=Math.imul(h1^(h1>>>16),2246822507)^Math.imul(h2^(h2>>>13),3266489909);h2=Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909);return 4294967296*(2097151&h2)+(h1>>>0)}
