@@ -41,6 +41,7 @@ a.follow{display:block;text-align:center;background:var(--pink);color:#fff;paddi
 <input id="lgEmail" placeholder="Seu e-mail" type="text">
 <input id="lgTik" placeholder="@seu_tiktok ex: @larisantosstyle" type="text">
 <input id="lgPass" placeholder="Senha" type="password">
+<div class="row"><button class="ghost" id="pwBtn" onclick="verSenha()">👁️ Ver senha</button></div>
 <button id="lgBtn" onclick="doAuth()">Entrar</button>
 <p class="small" id="lgMsg" style="margin-top:8px"></p>
 </div></div>
@@ -221,6 +222,7 @@ function doAuth(){
  localStorage.setItem('tt_users',JSON.stringify(users));localStorage.setItem('tt_session',e);localStorage.setItem('tt_last',JSON.stringify({e,t}));checkAuth();
 }
 function isAdmin(){try{return (localStorage.getItem('tt_session')||'')==ADMIN_EMAIL}catch(e){return false}}
+function verSenha(){let p=lgPass.type=='password';lgPass.type=p?'text':'password';pwBtn.textContent=p?'🙈 Ocultar':'👁️ Ver senha'}
 function checkAuth(){let s=localStorage.getItem('tt_session'),u=getUsers();if(s&&u[s]){loginGate.style.display='none';app.style.display='block';userHi.textContent='Logada: '+(u[s].n||s)+' • @'+u[s].tik+(s==ADMIN_EMAIL?' • ADMIN':'');fixTik.value=u[s].tik}else{loginGate.style.display='flex';app.style.display='none'}}
 function doLogout(){localStorage.removeItem('tt_session');checkAuth()}
 async function puxarDadosConta(manual){
