@@ -47,12 +47,15 @@ app.post('/api/tiktok/token', async (req, res) => {
   if (limited(req, res, 20, 60000)) return;
   try {
     const code = (req.body || {}).code;
+    const sb = (req.body || {}).env === 'sb';
+    const KEY = sb ? (process.env.TIKTOK_SB_KEY || '') : CLIENT_KEY;
+    const SEC = sb ? (process.env.TIKTOK_SB_SECRET || '') : CLIENT_SECRET;
     if (!code) return res.status(400).json({ error: 'code requerido' });
     const r = await fetch('https://open.tiktokapis.com/v2/oauth/token/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({
-        client_key: CLIENT_KEY, client_secret: CLIENT_SECRET,
+        client_key: KEY, client_secret: SEC,
         code, grant_type: 'authorization_code', redirect_uri: REDIRECT_URI
       })
     });
