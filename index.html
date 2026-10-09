@@ -196,9 +196,15 @@ a.follow{display:block;text-align:center;background:var(--pink);color:#fff;paddi
 
 <script>
 const U='larisantosstyle';
-const TIKTOK_KEY='awfyanz7y2bffl7m',TIKTOK_RED='https://tikgrow.onrender.com/',TIKTOK_SCOPES='user.info.profile,user.info.stats,video.list';
-function conectarTikTok(){let url='https://www.tiktok.com/v2/auth/authorize/?client_key='+TIKTOK_KEY+'&scope='+encodeURIComponent(TIKTOK_SCOPES)+'&response_type=code&redirect_uri='+encodeURIComponent(TIKTOK_RED)+'&state=tikgrow';location.href=url}
-function checkTikCode(){let q=new URLSearchParams(location.search);let c=q.get('code');if(c){localStorage.setItem('tt_tiktok_code',c);tikAuth.innerHTML=`✅ TikTok autorizado! Código recebido. Conclua a troca no backend p/ puxar seguidores.`;history.replaceState({},'',location.pathname)}};
+const TIKTOK_KEY='awfyanz7y2bffl7m',TIKTOK_RED='https://tikgrow.onrender.com/',TIKTOK_SCOPES='user.info.profile,user.info.stats,video.list',TIKTOK_API='https://tikgrow-api.onrender.com';
+function conectarTikTok(){location.href='https://www.tiktok.com/v2/auth/authorize/?client_key='+TIKTOK_KEY+'&scope='+encodeURIComponent(TIKTOK_SCOPES)+'&response_type=code&redirect_uri='+encodeURIComponent(TIKTOK_RED)+'&state=tikgrow'}
+async function checkTikCode(){let q=new URLSearchParams(location.search);let c=q.get('code');history.replaceState({},'',location.pathname);if(!c)return;tikAuth.textContent='Conectando ao TikTok...';try{
+let t=await(await fetch(TIKTOK_API+'/api/tiktok/token',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:c})})).json();
+if(!t.access_token)throw 0;sessionStorage.setItem('tt_tok',t.access_token);
+let m=await(await fetch(TIKTOK_API+'/api/tiktok/me',{headers:{Authorization:'Bearer '+t.access_token}})).json();
+if(m.follower_count!=null){current.value=m.follower_count;if(m.likes_count!=null)likesTotal.value=m.likes_count;upd();salvarSnap()}
+tikAuth.innerHTML=`✅ <b>${esc(m.display_name||'Conectado')}</b> • ${Number(m.follower_count||0).toLocaleString('pt-BR')} seguidores • ${Number(m.likes_count||0).toLocaleString('pt-BR')} curtidas`;
+}catch(e){localStorage.setItem('tt_tiktok_code',c);tikAuth.textContent='Autorizado! Ative o backend p/ puxar os números.'}};
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 let mode='in';
 function tab(m){mode=m;tabIn.className=m=='in'?'':'ghost';tabUp.className=m=='up'?'':'ghost';lgName.style.display=m=='up'?'block':'none';lgBtn.textContent=m=='up'?'Criar conta':'Entrar';lgMsg.textContent=''}
