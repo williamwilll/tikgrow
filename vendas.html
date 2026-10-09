@@ -33,8 +33,8 @@ footer{text-align:center;color:#999;font-size:12px;padding:0 0 34px}
 </div></div>
 <div class="sec" id="planos"><h2>Acesso simples</h2><p>Liberação por token, na hora.</p>
 <div class="plans">
-<div class="plan"><h3>Mensal</h3><div class="price">R$ 27<small>/mês</small></div><ul><li>Acesso completo por 30 dias</li><li>Todas as atualizações</li><li>Suporte no WhatsApp</li></ul><a class="btn ghost" data-plan="Mensal" href="#">Assinar mensal</a></div>
-<div class="plan hot"><h3>Semestral</h3><div class="price">R$ 147<small>/6 meses</small></div><ul><li>6 meses de acesso</li><li>Todas as atualizações</li><li>Suporte prioritário</li></ul><a class="btn" data-plan="Semestral" href="#">Quero semestral</a></div>
+<div class="plan"><h3>Mensal</h3><div class="price" id="priceM">R$ 27<small>/mês</small></div><ul><li>Acesso completo por 30 dias</li><li>Todas as atualizações</li><li>Suporte no WhatsApp</li></ul><a class="btn ghost" data-plan="Mensal" href="#">Assinar mensal</a></div>
+<div class="plan hot"><h3>Semestral</h3><div class="price" id="priceS">R$ 147<small>/6 meses</small></div><ul><li>6 meses de acesso</li><li>Todas as atualizações</li><li>Suporte prioritário</li></ul><a class="btn" data-plan="Semestral" href="#">Quero semestral</a></div>
 </div></div>
 <div class="sec"><h2>Perguntas frequentes</h2><div class="faq">
 <details><summary>Preciso aparecer nos vídeos?</summary><p style="margin-top:8px;color:#555">Não. Use os prompts de IA com avatar ou formatos POV e unboxing.</p></details>
@@ -45,7 +45,10 @@ footer{text-align:center;color:#999;font-size:12px;padding:0 0 34px}
 <footer>TikGrow • ferramenta independente, sem vínculo com o TikTok. Resultados variam por nicho e consistência.</footer>
 </div>
 <script>
-const WHATSAPP='5500000000000'; // TROQUE pelo seu número com DDI+DDD
-document.querySelectorAll('a[data-plan]').forEach(a=>{a.href='https://wa.me/'+WHATSAPP+'?text='+encodeURIComponent('Quero o TikGrow ('+a.dataset.plan+')');a.target='_blank'});
+let CFG={wa:'5500000000000',pm:'R$ 27',ps:'R$ 147'};
+try{let l=JSON.parse(localStorage.getItem('tt_cfg')||'null');if(l){if(l.wa)CFG.wa=l.wa;if(l.pm)CFG.pm=l.pm;if(l.ps)CFG.ps=l.ps}}catch(e){}
+function applyCfg(){document.getElementById('priceM').innerHTML=CFG.pm+'<small>/mês</small>';document.getElementById('priceS').innerHTML=CFG.ps+'<small>/6 meses</small>';document.querySelectorAll('a[data-plan]').forEach(a=>{a.href='https://wa.me/'+CFG.wa+'?text='+encodeURIComponent('Quero o TikGrow ('+a.dataset.plan+')');a.target='_blank'})}
+async function cfgLoad(){try{let r=await fetch('https://tikgrow-api.onrender.com/api/config');let j=await r.json();if(!localStorage.getItem('tt_cfg')){if(j.wa)CFG.wa=j.wa;if(j.pm)CFG.pm=j.pm;if(j.ps)CFG.ps=j.ps}}catch(e){}applyCfg()}
+cfgLoad();
 </script>
 </body></html>
