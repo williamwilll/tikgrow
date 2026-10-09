@@ -1,0 +1,8 @@
+services:
+  - type: web
+    name: tikgrow
+    env: static
+    buildCommand: ""
+    staticPublishPath: ./
+    plan: free
+    autoDeploy: true

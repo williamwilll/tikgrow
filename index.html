@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TikGrow</title>
+<style>
+:root{--bg:#0a0a0f;--card:#14141c;--line:#23232f;--txt:#f2f2f5;--mut:#9a9aad;--pink:#FE2C55;--cyan:#25F4EE;--r:16px}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Inter,system-ui,-apple-system}
+body{background:var(--bg);color:var(--txt)}
+.wrap{max-width:560px;margin:auto;padding:14px 14px 100px}
+.topbar{position:sticky;top:0;z-index:20;background:rgba(10,10,15,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);margin:-14px -14px 12px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between}
+.logo{font-size:22px;font-weight:900;letter-spacing:.5px}.logo span{color:var(--pink)}.logo em{color:var(--cyan);font-style:normal}
+.nav{display:flex;gap:6px;overflow-x:auto;padding:2px 0 8px}.nav a{flex:0 0 auto;font-size:12px;font-weight:700;color:var(--mut);background:var(--card);border:1px solid var(--line);padding:8px 12px;border-radius:99px;text-decoration:none}.nav a.on{color:#000;background:var(--cyan);border-color:var(--cyan)}
+.sub{text-align:center;color:var(--mut);font-size:12px;margin:4px 0 10px}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin:12px 0;box-shadow:0 8px 30px rgba(0,0,0,.35)}
+.card h2{font-size:14px;margin-bottom:4px;letter-spacing:.3px}.card .desc{font-size:12px;color:var(--mut);margin-bottom:8px}
+input,select,textarea,button{width:100%;padding:12px;border-radius:12px;border:1px solid var(--line);background:#1d1d27;color:#fff;margin:6px 0;font-size:14px}textarea{resize:vertical}
+button{background:var(--pink);border:0;font-weight:800;cursor:pointer}button:active{transform:scale(.98)}
+button.ghost{background:#22232e}button.cyan{background:var(--cyan);color:#000}
+a.follow{display:block;text-align:center;background:var(--pink);color:#fff;padding:15px;border-radius:12px;font-weight:900;text-decoration:none;margin:10px 0}
+.idea{background:#191922;border-left:4px solid var(--pink);padding:12px;border-radius:10px;margin:8px 0;font-size:13.5px;line-height:1.65;overflow-wrap:anywhere;word-break:break-word}
+.badge{display:inline-block;background:var(--cyan);color:#000;font-size:11px;font-weight:800;padding:2px 10px;border-radius:99px;margin-bottom:6px}
+.hook{background:var(--pink);padding:9px 10px;border-radius:10px;font-weight:700;font-size:13px;margin:6px 0}
+.small{font-size:12px;color:var(--mut);line-height:1.55}.row{display:flex;gap:8px}.row>*{flex:1;min-width:0}.copy{background:#22232e;margin-top:6px;padding:9px;font-size:12px}
+.stats{display:flex;gap:8px}.stat{flex:1;min-width:0;background:#191922;border:1px solid var(--line);border-radius:12px;padding:12px 6px;text-align:center}.stat b{display:block;font-size:19px}.stat small{display:block;margin-top:4px;font-size:11px;color:var(--mut);line-height:1.3}
+.progress{height:10px;background:#22232e;border-radius:99px;overflow:hidden;margin:10px 0}.progress div{height:100%;background:linear-gradient(90deg,var(--pink),var(--cyan));width:1%}
+#loginGate{position:fixed;inset:0;background:#000;z-index:99;display:flex;align-items:center;justify-content:center;padding:20px}#loginBox{width:100%;max-width:360px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px;text-align:center}
+.tabs{display:flex;gap:8px;margin:10px 0}
+#userBar{display:flex;gap:8px;align-items:center;justify-content:space-between;font-size:12px;color:var(--mut);margin-bottom:4px}#userBar button{width:auto;padding:6px 12px;font-size:12px}
+.check{display:flex;gap:8px;align-items:center;margin:6px 0;font-size:13px}.check input{width:18px}
+.sec-label{font-size:11px;font-weight:800;letter-spacing:1.5px;color:var(--cyan);margin:14px 0 2px}
+</style>
+</head>
+<body>
+<div id="loginGate"><div id="loginBox">
+<div class="logo"><span>Tik</span><em>Grow</em></div>
+<p class="small">Crescimento orgânico com IA.<br>@larisantosstyle • TikGrow</p>
+<div class="tabs"><button id="tabIn" onclick="tab('in')">Entrar</button><button id="tabUp" class="ghost" onclick="tab('up')">Criar conta</button></div>
+<input id="lgName" placeholder="Seu nome (só p/ criar conta)" style="display:none">
+<input id="lgEmail" placeholder="Seu e-mail" type="text">
+<input id="lgTik" placeholder="@seu_tiktok ex: @larisantosstyle" type="text">
+<input id="lgPass" placeholder="Senha" type="password">
+<button id="lgBtn" onclick="doAuth()">Entrar</button>
+<p class="small" id="lgMsg" style="margin-top:8px"></p>
+</div></div>
+
+<div class="wrap" id="app" style="display:none">
+<div class="topbar"><div class="logo"><span>Tik</span><em>Grow</em></div><div id="userBar" style="margin:0"><span id="userHi">...</span><button class="ghost" onclick="doLogout()">Sair</button></div></div>
+<div class="sub">@larisantosstyle • 124 seguidores → 1k LIVE → 10k monetiza<br>Roteiro + legenda + prompt pronto p/ gravar</div>
+<div class="nav" id="mainNav">
+<a href="#" data-tab="dash" class="on" onclick="return showTab('dash')">Visão geral</a><a href="#" data-tab="criar" onclick="return showTab('criar')">Criar</a><a href="#" data-tab="studio" onclick="return showTab('studio')">Estúdio IA 🤖</a><a href="#" data-tab="shop" onclick="return showTab('shop')">Shop</a><a href="#" data-tab="top" onclick="return showTab('top')">Top</a><a href="#" data-tab="agenda" onclick="return showTab('agenda')">Agenda</a><a href="#" data-tab="perfil" onclick="return showTab('perfil')">Perfil</a>
+</div>
+<div class="sec-label" id="sec-dash">VISÃO GERAL</div>
+
+<div class="card"><h2>1. Dashboard conta 📊</h2>
+<div id="tikInfo" class="small">Toque em Validar meu @.</div>
+<div class="row"><input id="fixTik" placeholder="@larisantosstyle"><button class="ghost" onclick="corrigirArroba()">Validar</button></div>
+<div class="row"><input id="current" type="number" value="124" placeholder="Seguidores"><input id="goal" type="number" value="1000" placeholder="Meta"></div>
+<div class="row"><input id="views30" type="number" placeholder="Views 30d ex: 5000"><input id="likesTotal" type="number" placeholder="Curtidas ex: 301"></div>
+<div class="row"><button class="ghost" onclick="salvarSnap()">Salvar snapshot hoje</button><button class="ghost" onclick="limparSnap()">Limpar</button></div>
+<a class="follow" id="followBtnReal" href="https://www.tiktok.com/@larisantosstyle" target="_blank">+ SEGUIR @larisantosstyle</a>
+<div class="progress"><div id="bar"></div></div>
+<div class="stats"><div class="stat"><b id="sC">124</b><small>seguidores</small></div><div class="stat"><b id="sV">0</b><small>views 30d</small></div><div class="stat"><b id="sL">0</b><small>curtidas</small></div></div>
+<div class="stats" style="margin-top:8px"><div class="stat"><b id="sP">12%</b><small>meta</small></div><div class="stat"><b id="sF">876</b><small>faltam</small></div><div class="stat"><b id="sG">1000</b><small>alvo</small></div></div>
+<div id="outEvo" class="small" style="margin-top:8px"></div>
+</div>
+
+<div class="sec-label" id="sec-criar">CRIAR CONTEÚDO</div>
+
+<div class="card"><h2>2. Roteiro 👗</h2>
+<input id="tema" placeholder="Produto/tema: ex: conjunto fitness preto">
+<select id="tipo" onchange="explicarTipo()"><option value="provador">Provador / 3 looks</option><option value="fitness">Teste fitness</option><option value="vitrine">Vitrine</option><option value="responde">Responde comentário</option><option value="erro">Erro x Acerto</option><option value="grwm">Arrume-se comigo</option><option value="evolucao">Evolução</option><option value="motivacao">Motivação (0-1k)</option><option value="ugc">UGC demonstração</option><option value="pov">POV 1ª pessoa</option><option value="unboxing">Unboxing</option><option value="combo">Combo 3 em 1 📦👀✅</option></select>
+<button onclick="gerarUm()">Gerar roteiro</button>
+<div id="outTipoInfo" class="small"></div>
+<div id="outUm"></div>
+</div>
+
+<div class="card"><h2>3. Semana 7 dias 🚀</h2>
+<button class="cyan" onclick="gerarSemana()">Gerar semana</button>
+<div id="outSemana"></div>
+</div>
+
+<div class="card"><h2>4. Legenda + hashtags</h2>
+<input id="legTema" placeholder="Ex: look casual barato">
+<button class="ghost" onclick="gerarLeg()">Gerar legenda</button>
+<div id="outLeg"></div>
+</div>
+
+<div class="sec-label" id="sec-shop">TIKTOK SHOP</div>
+
+<div class="card"><h2>5. Em alta TikTok Shop 🔥</h2>
+<select id="shopCat" onchange="renderShop()"><option value="moda">Moda casual</option><option value="fitness">Fitness</option><option value="beleza">Beleza</option><option value="acessorios">Acessórios</option><option value="motivacao">Motivação</option></select>
+<div id="shopList"></div>
+<input id="shopCustom" placeholder="Ou cole seu produto da vitrine">
+<button class="cyan" onclick="usarCustom()">Usar produto → gerar tudo</button>
+</div>
+
+<div class="card"><h2>6. Prompt vídeo IA 🎬</h2>
+<p class="desc">Só vídeo: Veo 3 / Runway / Hailuo / Pika / Luma.</p>
+<input id="pLook" placeholder="Look: ex: vestido floral midi rosa">
+<select id="pCenario"><option value="quarto claro moderno">Quarto claro</option><option value="espelho provador loja">Provador</option><option value="academia moderna">Academia</option><option value="sala minimalista">Sala minimalista</option></select>
+<select id="pTipo" onchange="explicarPTipo()"><option value="provador">Provador</option><option value="fitness">Fitness</option><option value="vitrine">Vitrine</option><option value="grwm">Arrume-se</option><option value="close">Close tecido</option><option value="motivacao">Motivação</option><option value="ugc">UGC demonstração</option><option value="pov">POV 1ª pessoa</option><option value="unboxing">Unboxing</option><option value="combo">Combo 3 em 1</option></select>
+<button class="cyan" onclick="gerarPrompt()">Gerar 1 prompt de vídeo</button>
+<div id="outPTipoInfo" class="small"></div>
+<div class="row"><input id="qtdV" type="number" value="5" min="1" max="30"><button class="ghost" onclick="gerarVarios()">Gerar N prompts</button></div>
+<div id="outPrompt"></div>
+<p class="small">Ative “Conteúdo IA” ao postar no TikTok.</p>
+</div>
+
+<div class="card"><h2>7. Prompt imagem IA 🖼️</h2>
+<p class="desc">Só capa/thumbnail: Leonardo / Midjourney / Firefly / DALL-E.</p>
+<input id="imgLook" placeholder="Look: ex: conjunto fitness preto">
+<select id="imgEstilo"><option value="foto realista profissional, luz suave">Foto realista</option><option value="editorial moda, estúdio">Editorial estúdio</option><option value="lifestyle natural, luz do dia">Lifestyle natural</option><option value="close detalhe tecido premium">Close tecido</option></select>
+<select id="imgFundo"><option value="quarto claro minimalista">Fundo quarto claro</option><option value="provador com espelho">Provador espelho</option><option value="academia moderna desfocada">Academia</option><option value="fundo rosa sólido vibrante">Fundo rosa sólido</option></select>
+<button class="cyan" onclick="gerarImg()">Gerar 1 prompt de imagem</button>
+<div class="row"><input id="qtdI" type="number" value="5" min="1" max="20"><button class="ghost" onclick="gerarVariasImg()">Gerar N imagens</button></div>
+<div id="outImg"></div>
+</div>
+
+<div class="sec-label" id="sec-video">DESEMPENHO</div>
+
+<div class="card"><h2>8. Análise de vídeos 🏆 melhor desempenho</h2>
+<p class="small">Cadastre views/likes/comentários por vídeo. O app rankeia e diz o que repetir.</p>
+<input id="vdTitulo" placeholder="Título vídeo ex: provador 3 looks">
+<div class="row"><input id="vdViews" type="number" placeholder="Views"><input id="vdLikes" type="number" placeholder="Likes"></div>
+<div class="row"><input id="vdComm" type="number" placeholder="Comentários"><input id="vdVendas" type="number" placeholder="Vendas"></div>
+<div class="row"><input id="vdFollows" type="number" placeholder="Seguidores ganhos"><button class="cyan" onclick="addVideo()">Adicionar vídeo</button></div>
+<div id="outVideos"></div>
+</div>
+
+<div class="sec-label" id="sec-perfil">PERFIL</div>
+
+<div class="card"><h2>9. Análise de perfil ✨ bio + conversão</h2>
+<textarea id="bioTxt" rows="3" placeholder="Cole sua bio: ex: ✨ Looks femininos...">✨ Looks femininos que encantam 👗 Do casual ao fitness 🛍️ Confira na Vitrine ↓</textarea>
+<button class="ghost" onclick="analisarPerfil()">Analisar meu perfil</button>
+<div id="outBio"></div>
+</div>
+
+<div class="card"><h2>9B. Meu avatar 🧍 tenho ou crio?</h2>
+<p class="desc">Trave seu rosto 1 vez: a IA gera sempre a mesma pessoa.</p>
+<select id="avModo" onchange="avGuia()"><option value="tenho">✅ Já tenho (minha foto / avatar pronto)</option><option value="nao">🆕 Não tenho — quero criar grátis</option></select>
+<div class="row"><input id="avIdade" placeholder="Idade ex: 27"><input id="avCabelo" placeholder="Cabelo ex: castanho ondulado"></div>
+<div class="row"><input id="avPele" placeholder="Pele ex: morena clara"><input id="avEstilo" placeholder="Estilo ex: casual elegante"></div>
+<input id="avFoto" type="file" accept="image/*" onchange="avPreview(this)">
+<div id="avPrev"></div>
+<div id="outAvGuia"></div>
+<button class="cyan" onclick="gerarLock()">Fixar minha aparência ✨</button>
+<div id="outLock"></div>
+<button class="ghost" onclick="gerarFotoAvatar()">Gerar minha foto aqui 📸</button>
+<div id="outFoto"></div>
+<p class="small">Grátis, sem sair do app. Usa idade, cabelo, pele e estilo preenchidos acima. Se não gostar, gere de novo.</p>
+</div>
+
+<div class="card"><h2>▶️ O que fazer hoje (3 passos)</h2>
+<p class="small">Sua fase: <b id="faseTxt">0-1k</b></p>
+<div id="outFase"></div>
+<input id="hookBase" placeholder="Ex: conjunto fitness preto">
+<button class="cyan" onclick="pacoteHoje()">⚡ Gerar meu pacote de hoje (tudo de 1 vez)</button>
+<button class="ghost" onclick="gerarHooksIA()">1️⃣ Só gerar ideias</button>
+<div id="outHooks"></div>
+<p class="small">2️⃣ Grave e poste • 3️⃣ Volte aqui e marque na Agenda.</p>
+</div>
+
+<div class="sec-label" id="sec-agenda">ROTINA + VENDAS</div>
+
+<div class="card"><h2>10. Checklist + Agenda 30d + Vendas</h2>
+<div id="checklist"></div>
+<button class="cyan" onclick="gerarAgenda()">Gerar agenda 30 dias (11h/15h/19h)</button>
+<button class="ghost" onclick="hojePostado()">Hoje postado ✅ (marca os 3)</button>
+<div id="outFreq" class="small"></div>
+<div id="outAgenda"></div>
+<div class="row"><input id="vCliques" type="number" placeholder="Cliques"><input id="vVendas" type="number" placeholder="Vendas"></div>
+<input id="vTicket" type="number" placeholder="Ticket médio R$">
+<button class="ghost" onclick="salvarVendas()">Salvar vendas hoje</button>
+<div id="outVendas" class="small"></div>
+</div>
+
+<div class="card"><h2>11. Histórico + Capas + Pontos</h2>
+<div class="stats"><div class="stat"><b id="gPts">0</b><small>pontos</small></div><div class="stat"><b id="gNivel">Iniciante</b><small>nível</small></div><div class="stat"><b id="gFalta">876</b><small>p/ 1k</small></div></div>
+<div id="outSelos" class="small" style="margin:8px 0"></div>
+<div class="row"><button class="ghost" onclick="salvarAtual()">Salvar atual</button><button class="ghost" onclick="limparHist()">Limpar hist.</button></div>
+<div class="row"><button class="ghost" onclick="exportarDados()">Exportar backup</button><button class="ghost" onclick="document.getElementById('impFile').click()">Importar</button></div>
+<input id="impFile" type="file" accept=".json" style="display:none" onchange="importarDados(this)">
+<div id="outHist"></div>
+<input id="capaTxt" placeholder="Texto capa: 3 LOOKS R$99">
+<button class="ghost" onclick="gerarCapa()">Gerar capa</button>
+<div id="outCapa"></div>
+<input id="pixKey" placeholder="Chave PIX p/ vender acesso">
+<button class="ghost" onclick="salvarPix()">Salvar Pix</button>
+</div>
+<p class="small" style="text-align:center;margin-top:14px">TikGrow • ferramenta independente, sem vínculo com o TikTok. Sem bots ou compra de seguidores. Ideias geradas localmente. Dados só neste aparelho.</p>
+</div>
+
+<script>
+const U='larisantosstyle';
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+let mode='in';
+function tab(m){mode=m;tabIn.className=m=='in'?'':'ghost';tabUp.className=m=='up'?'':'ghost';lgName.style.display=m=='up'?'block':'none';lgBtn.textContent=m=='up'?'Criar conta':'Entrar';lgMsg.textContent=''}
+function getUsers(){try{return JSON.parse(localStorage.getItem('tt_users')||'{}')}catch(e){return{}}}
+function copyTxt(id){let el=document.getElementById(id);if(!el)return;navigator.clipboard.writeText(el.innerText);alert('Copiado!')}
+function doAuth(){
+ let e=(lgEmail.value||'').trim().toLowerCase(),p=lgPass.value||'',n=(lgName.value||'').trim(),t=(lgTik.value||'').trim().replace('@','');
+ if(!e||!p||!t){lgMsg.textContent='Preencha e-mail, @tiktok e senha.';return}
+ let users=getUsers();
+ if(mode=='up'){if(users[e]){lgMsg.textContent='Já existe. Clique Entrar.';return}users[e]={p:btoa(p),n:n||e,tik:t,at:Date.now()}}
+ else{if(!users[e]){lgMsg.textContent='Sem conta. Clique Criar conta.';return}if(users[e].p!==btoa(p)){lgMsg.textContent='Senha errada.';return}users[e].tik=t}
+ localStorage.setItem('tt_users',JSON.stringify(users));localStorage.setItem('tt_session',e);checkAuth();
+}
+function checkAuth(){let s=localStorage.getItem('tt_session'),u=getUsers();if(s&&u[s]){loginGate.style.display='none';app.style.display='block';userHi.textContent='Logada: '+(u[s].n||s)+' • @'+u[s].tik;fixTik.value=u[s].tik}else{loginGate.style.display='flex';app.style.display='none'}}
+function doLogout(){localStorage.removeItem('tt_session');checkAuth()}
+async function puxarDadosConta(manual){
+ let s=localStorage.getItem('tt_session'),u=getUsers(),tik=((u[s]&&u[s].tik)||fixTik.value||U).replace('@','').trim();if(!tik)return;
+ tikInfo.textContent='Validando @'+tik+'...';
+ try{let c=new AbortController();setTimeout(()=>c.abort(),7000);
+ let r=await fetch('https://www.tiktok.com/oembed?url='+encodeURIComponent('https://www.tiktok.com/@'+tik),{signal:c.signal});
+ if(!r.ok)throw 0;let j=await r.json();
+ tikInfo.innerHTML=`✅ <b>${esc(j.author_name)} (@${esc(tik)})</b> • <a href="${j.author_url}" target="_blank" style="color:#25F4EE">abrir perfil</a>`;
+ followBtnReal.href=j.author_url;followBtnReal.textContent='+ SEGUIR @'+tik;
+ }catch(e){let url='https://www.tiktok.com/@'+tik;tikInfo.innerHTML=`@${esc(tik)} • <a href="${url}" target="_blank" style="color:#25F4EE">abrir perfil p/ conferir</a> • mantenha números abaixo.`;followBtnReal.href=url;followBtnReal.textContent='+ SEGUIR @'+tik;if(manual)alert('Sem auto-validação (bloqueio TikTok). Use Abrir perfil.')}
+}
+function corrigirArroba(){let s=localStorage.getItem('tt_session'),u=getUsers();let v=(fixTik.value||'').replace('@','').trim();if(!v||!u[s])return;u[s].tik=v;localStorage.setItem('tt_users',JSON.stringify(u));checkAuth();puxarDadosConta(true)}
+function upd(){let c=+current.value||0,g=+goal.value||1000,v=+views30.value||0,l=+likesTotal.value||0,p=g?Math.min(100,Math.round(c/g*100)):0;sC.textContent=c;sG.textContent=g;sP.textContent=p+'%';sF.textContent=Math.max(0,g-c);sV.textContent=v.toLocaleString('pt-BR');sL.textContent=l.toLocaleString('pt-BR');bar.style.width=p+'%';localStorage.setItem('tt_dash',JSON.stringify({c,g,v,l}));renderGame();renderEvo(false)}
+const MODELS={
+provador:t=>({h:`Mostre: ${t}`,s:`Vista os 3 looks e pergunte o melhor.`,l:`Qual 1, 2 ou 3? 👇`,h2:`#provador`}),
+fitness:t=>({h:`Teste: ${t}`,s:`Vista, agache e mostre o tecido.`,l:`Aprovado? 👀`,h2:`#fitness`}),
+vitrine:t=>({h:`Achadinho: ${t}`,s:`Mostre no corpo + preço.`,l:`Link na sacolinha 👇`,h2:`#achadinho`}),
+responde:t=>({h:`Responda: ${t}`,s:`Grave com a peça no corpo.`,l:`Respondendo 💬`,h2:`#moda`}),
+erro:t=>({h:`Certo x errado`,s:`Mostre o erro e o acerto.`,l:`Salva ✅`,h2:`#dica`}),
+grwm:t=>({h:`Arrume-se comigo`,s:`Se arrume em 30s.`,l:`Rumo 1k 🚀`,h2:`#grwm`}),
+evolucao:t=>({h:`Minha evolução`,s:`Mostre antes/depois.`,l:`Obrigada!`,h2:`#viral`}),
+motivacao:t=>({h:`${t} — não desista`,s:`História 25s + peça seguir.`,l:`Segue p/ parte 2 💪`,h2:`#motivacao`}),
+ugc:t=>({h:`Testei ${t} de verdade`,s:`Use na frente da câmera + mostre resultado.`,l:`Teste real 👀 Aprovado?`,h2:`#ugc #testei`}),
+pov:t=>({h:`POV: você com ${t}`,s:`Filme em 1ª pessoa usando.`,l:`POV 👀 e aí, usaria?`,h2:`#pov`}),
+unboxing:t=>({h:`Abrindo ${t} 📦`,s:`Abra devagar + reação sincera.`,l:`Chegou! 📦 nota?`,h2:`#unboxing`}),
+combo:t=>({h:`Do pacote ao corpo 📦👀✅`,s:`1 abra + 2 vista em POV + 3 teste de verdade.`,l:`Completo: abri, vesti, testei ✅`,h2:`#ugc #pov #unboxing`})};
+function cardRoteiro(i,tipo,tema){tema=esc(tema);let m=(MODELS[tipo]||MODELS.provador)(tema);return `<div class="idea" id="r${i}"><span class="badge">VÍDEO ${i}</span><div class="hook">${m.h}</div><div><b>Gravar:</b> ${m.s}</div><div class="small">Legenda pronta: ${m.l} ${m.h2}</div><button class="copy" onclick="copyTxt('r${i}')">Copiar roteiro</button></div>`}
+function gerarUm(){gerarLegAuto();outUm.innerHTML=cardRoteiro(1,tipo.value,tema.value||'look vitrine');salvarHistAuto()}
+function gerarSemana(){let isM=tipo.value=='motivacao'||shopCat.value=='motivacao';let s=isM?[['motivacao','Dia 1/30 saindo do zero'],['motivacao','3 frases que me salvaram'],['motivacao','Carta pra quem tá no zero'],['motivacao','Dueto superação'],['motivacao','O que faria se recomeçasse'],['motivacao','Bastidor dia real'],['motivacao','Compilado semana']]:[['provador','peças casuais baratas'],['fitness','conjunto fitness preto'],['responde','look pedido'],['erro','legging dia a dia'],['grwm','look vitrine'],['vitrine','top 3 vitrine'],['evolucao','evolução']];outSemana.innerHTML=s.map((x,i)=>cardRoteiro(i+1,x[0],x[1])).join('')}
+function gerarLeg(){let t=esc(legTema.value||'look do dia');let isM=tipo.value=='motivacao'||/motiv|disciplina|foco|dia \d/i.test(t);outLeg.innerHTML=isM?`<div class="idea" id="legOut">${t} 💪 Dia 1/30 — segue p/ não perder a série 🙏 #motivacao #mentalidade #disciplina #foco<button class="copy" onclick="copyTxt('legOut')">Copiar</button></div>`:`<div class="idea" id="legOut">${t} ✨ 1 ou 2? 👇 Segue @${U} 19h 💖 #modafeminina #provador #tiktokshop<button class="copy" onclick="copyTxt('legOut')">Copiar</button></div>`}
+function gerarLegAuto(){if(legTema&&tema.value)legTema.value=tema.value}
+const FORMATS={provador:['Vista 3 looks e pergunte o melhor.','Vender moda na vitrine.','Ex: 3 vestidos'],fitness:['Vista e teste no corpo (agacha, tecido).','Moda fitness.','Ex: conjunto preto'],vitrine:['Mostre preço + sacolinha laranja.','Vender direto.','Ex: top 3 vitrine'],responde:['Responda um comentário em vídeo.','Engajar e gerar ideia infinita.','Ex: “onde comprou?”'],erro:['Mostre o errado e o certo.','Ensinar e viralizar.','Ex: legging no dia a dia'],grwm:['Mostre se arrumando.','Conectar e humanizar.','Ex: arrume-se comigo'],evolucao:['Mostre antes/depois.','Prova e emoção.','Ex: 7 dias postando'],motivacao:['História curta + peça seguir.','Nicho motivação 0-1k.','Ex: dia 1/30'],ugc:['Use o produto de verdade na câmera.','Vender com prova real.','Ex: testando a base'],pov:['Filme em 1ª pessoa (suas mãos/olhos).','Imersão, o cliente se imagina.','Ex: abrindo o pacote'],unboxing:['Abra a embalagem devagar + reação.','Novidade e curiosidade.','Ex: chegou meu pedido 📦'],combo:['1 vídeo: abre 📦 + veste em POV 👀 + testa ✅.','1 vídeo completo que mais vende.','Ex: do pacote ao corpo']};
+function explicarTipo(){let f=FORMATS[tipo.value];outTipoInfo.innerHTML=f?`📌 <b>O que é:</b> ${f[0]}<br>🎯 <b>Quando usar:</b> ${f[1]}<br>💡 ${f[2]}`:''}
+function explicarPTipo(){let f=FORMATS[pTipo.value];outPTipoInfo.innerHTML=f?`📌 <b>Como fica o vídeo IA:</b> ${f[0]}<br>🎯 <b>Quando usar:</b> ${f[1]}<br>💡 ${f[2]}`:''}
+const SHOP={moda:[{n:'Vestido midi floral',t:'provador'},{n:'Cropped + saia jeans',t:'provador'},{n:'Tubinho bege',t:'erro'},{n:'Macacão casual',t:'vitrine'}],fitness:[{n:'Conjunto fitness preto',t:'fitness'},{n:'Legging modeladora',t:'fitness'},{n:'Top + short rosa',t:'fitness'}],beleza:[{n:'Base alta cobertura',t:'close'},{n:'Lip gloss',t:'close'}],acessorios:[{n:'Bolsa transversal',t:'vitrine'}],motivacao:[{n:'Ebook disciplina diária',t:'motivacao'},{n:'Planner 30 dias foco',t:'motivacao'},{n:'Mentoria saída do zero',t:'motivacao'}]};
+function renderShop(){let a=SHOP[shopCat.value]||SHOP.moda;shopList.innerHTML=a.map(x=>`<div class="idea"><b>${x.n}</b> <span class="badge">ALTA</span><button class="copy" onclick="usarProduto('${x.n}','${x.t}')">USAR</button></div>`).join('')}
+function usarProduto(n,t){tema.value=n;tipo.value=t;pLook.value=n;pTipo.value=t;legTema.value=n;capaTxt.value=n.length>24?n.slice(0,24):n;gerarUm();gerarPrompt();gerarLeg()}
+function usarCustom(){let v=shopCustom.value||'produto vitrine';usarProduto(v,'vitrine')}
+function promptEN(tipo,look,cen){const acts={motivacao:'cinematic motivational speaker, sunrise light, slow push-in, emotional, looking at camera',ugc:'authentic UGC testimonial, handheld phone, natural home light, demonstrating product, genuine reaction',pov:'first-person POV, hands visible, unboxing and trying on, immersive',unboxing:'opening package slowly on table, excited, close-up hands, happy reveal',combo:'three-part video: unboxing package, first-person try-on, real-life demo with result'};return `Brazilian woman 20s, modest elegant ${look}, full body, 9:16 TikTok, ${cen}, daylight, realistic, ${acts[tipo]||tipo}, 8s, stable`;}
+function promptCard(i,tipo,look,cen){look=esc(look);let en=promptEN(tipo,look,cen);let lk=lockTxt();return `<div class="idea" id="p${i}"><span class="badge">PROMPT ${i} • ${tipo}</span>${lk?`<div class="hook">🧍 Com sua aparência fixa: anexe sua foto na IA</div><div class="small"><b>Aparência:</b> ${lk}</div>`:''}<div class="small">${en}<br><br>Fala: "Olha esse ${look}! Link na vitrine, segue @${U}!"</div><button class="copy" onclick="copyTxt('p${i}')">Copiar prompt</button></div>`}
+function gerarPrompt(){outPrompt.innerHTML=promptCard(1,pTipo.value,pLook.value||'look vitrine',pCenario.value);salvarHistAuto()}
+function gerarVarios(){let q=Math.min(30,Math.max(1,+qtdV.value||3));let L=['vestido floral midi rosa','conjunto fitness preto alta compressão','jeans mom + cropped branco','tubinho bege','conjunto verde academia','saia jeans + blusa rosa','melhor look'],T=['ugc','pov','unboxing','combo','provador','fitness','vitrine'];let h='';for(let i=0;i<q;i++){h+=promptCard(i+1,T[i%T.length],L[i%L.length]+(i>=L.length?' v'+(Math.floor(i/L.length)+1):''),pCenario.value)}outPrompt.innerHTML=h;salvarHistAuto();addPts(5)}
+function gerarTodosPrompts(){qtdV.value=7;gerarVarios()}
+function gerarVariasImg(){let q=Math.min(20,Math.max(1,+qtdI.value||3));let L=['conjunto fitness preto','vestido floral midi rosa','jeans mom + cropped branco','tubinho bege','conjunto verde academia','saia jeans + blusa rosa'];let h='';for(let i=0;i<q;i++){let look=L[i%L.length]+(i>=L.length?' v'+(Math.floor(i/L.length)+1):'');h+=imgCard(i+1,look,imgEstilo.value,imgFundo.value)}outImg.innerHTML=h;salvarHistAuto();addPts(5)}
+function imgCard(i,look,est,bg){look=esc(look);let lk=lockTxt();let en=`${lk?lk+', ':''}Photorealistic full-body fashion photo, confident Brazilian woman in her 20s, modest elegant ${look}, natural makeup, ${est}, ${bg}, soft daylight, 9:16 vertical, ultra detailed fabric, sharp focus --ar 9:16 --style raw`;return `<div class="idea" id="imgN${i}"><span class="badge">IMAGEM ${i}</span>${lk?`<div class="small"><b>Aparência:</b> ${lk}</div>`:''}<div class="small">${en}<br><br>Look: ${look}</div><button class="copy" onclick="copyTxt('imgN${i}')">Copiar prompt</button></div>`}
+function gerarImg(){let look=esc(imgLook.value||'look feminino casual'),est=imgEstilo.value,bg=imgFundo.value;let lk=lockTxt();
+let en=`${lk?lk+', ':''}Photorealistic full-body fashion photo, confident Brazilian woman in her 20s, modest elegant ${look}, natural makeup, ${est}, ${bg}, soft daylight, 9:16 vertical, ultra detailed fabric, sharp focus --ar 9:16 --style raw`;
+let pt=`Foto vertical 9:16, ultrarrealista.\nModelo: mulher brasileira 20-30 anos, maquiagem natural, vestindo ${look}.\nEstilo: ${est}.\nFundo: ${bg}, luz suave natural.\nCorpo inteiro, tecido nítido, sem deformar rosto/mãos. Sem texto, sem marca d'água.`;
+let neg=`Negativo: blurry, deformed hands, extra fingers, distorted face, nudity, low quality, watermark, text`;
+outImg.innerHTML=`<div class="idea" id="imgOut"><span class="badge">IMAGEM PRONTA</span><div class="small"><b>PT:</b><br><span style="white-space:pre-line">${pt}</span><br><br><b>EN:</b><br>${en}<br><br><b>${neg}</b></div><button class="copy" onclick="copyTxt('imgOut')">Copiar prompt imagem</button></div>`;salvarHistAuto();addPts(5)}
+const CHECKS=["1k p/ LIVE","10k + 100k views","Vitrine ativa","PIX cadastrado","3 fixados + 3x/dia"];
+function renderChecks(){let d=JSON.parse(localStorage.getItem('tt_checks')||'[]');checklist.innerHTML=CHECKS.map((c,i)=>`<label class="check"><input type="checkbox" ${d.includes(i)?'checked':''} onchange="toggleC(${i})"><span>${c}</span></label>`).join('')}
+function toggleC(i){let d=JSON.parse(localStorage.getItem('tt_checks')||'[]');d=d.includes(i)?d.filter(x=>x!==i):[...d,i];localStorage.setItem('tt_checks',JSON.stringify(d));renderChecks()}
+function gerarAgenda(){let h=JSON.parse(localStorage.getItem('tt_agenda')||'{}');let fx=['provador','fitness','vitrine'];let total=30*3,done=0;
+outAgenda.innerHTML=Array.from({length:30},(_,d)=>{d=d+1;return `<div class="idea"><span class="badge">DIA ${d}</span><br>${['11h','15h','19h'].map((t,j)=>{let k=d+'-'+t,v=h[k]||'';if(v=='postado'||v=='gravado')done++;return `${t} ${fx[(d+j)%3]} <select onchange="setAgenda('${k}',this.value)"><option value="">pendente</option><option ${v=='gravado'?'selected':''} value="gravado">gravado+10</option><option ${v=='postado'?'selected':''} value="postado">postado+30</option></select><br>`}).join('')}</div>`}).join('');
+let pct=Math.round(done/total*100);outFreq.innerHTML=`Frequência: ${done}/${total} (${pct}%) • ${pct>=80?'🔥 Ritmo viral':pct>=40?'🚀 Crescendo':'🐢 Abaixo do ideal (meta 3/dia)'}`;}
+function setAgenda(k,v){let h=JSON.parse(localStorage.getItem('tt_agenda')||'{}');let old=h[k]||'';h[k]=v;localStorage.setItem('tt_agenda',JSON.stringify(h));if(v!=old)addPts(v=='postado'?30:v=='gravado'?10:0);gerarAgenda()}
+function salvarHistAuto(){try{let h=JSON.parse(localStorage.getItem('tt_hist')||'[]');h.unshift({at:new Date().toLocaleString('pt-BR'),t:tema.value||pLook.value||''});localStorage.setItem('tt_hist',JSON.stringify(h.slice(0,20)));renderHist()}catch(e){}}
+function salvarAtual(){salvarHistAuto();alert('Salvo no histórico!')}
+function renderHist(){let h=JSON.parse(localStorage.getItem('tt_hist')||'[]');outHist.innerHTML=h.length?h.map(x=>`<div class="idea">${esc(x.at)} • <b>${esc(x.t)}</b></div>`).join(''):'<p class="small">Vazio.</p>'}
+function limparHist(){localStorage.removeItem('tt_hist');renderHist()}
+function exportarDados(){let d={};for(let i=0;i<localStorage.length;i++){let k=localStorage.key(i);if(k.startsWith('tt_'))d[k]=localStorage.getItem(k)}let b=new Blob([JSON.stringify({app:'TikGrow',at:new Date().toISOString(),data:d},null,2)],{type:'application/json'});let a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='tikgrow-backup.json';a.click()}
+function importarDados(el){let f=el.files&&el.files[0];if(!f)return;let r=new FileReader();r.onload=e=>{try{let j=JSON.parse(e.target.result);let d=j.data||j;Object.keys(d).forEach(k=>{if(k.startsWith('tt_'))localStorage.setItem(k,d[k])});alert('Backup restaurado! Recarregando.');location.reload()}catch(err){alert('Arquivo inválido.')}};r.readAsText(f)}
+function gerarCapa(){let t=esc(capaTxt.value||'3 LOOKS R$99');outCapa.innerHTML=`<div class="idea" id="capaOut" style="text-align:center;background:#FE2C55;padding:20px;font-weight:900;font-size:20px">${t}<br><span style="font-size:12px">@${U}</span></div><button class="copy" onclick="copyTxt('capaOut')">Copiar</button>`;addPts(5)}
+function salvarVendas(){let h=JSON.parse(localStorage.getItem('tt_vendas')||'[]');h.push({c:+vCliques.value||0,v:+vVendas.value||0,t:+vTicket.value||0});localStorage.setItem('tt_vendas',JSON.stringify(h));renderVendas();addPts((+vVendas.value||0)*50)}
+function renderVendas(){let h=JSON.parse(localStorage.getItem('tt_vendas')||'[]');let c=h.reduce((a,x)=>a+x.c,0),v=h.reduce((a,x)=>a+x.v,0),f=h.reduce((a,x)=>a+x.v*x.t,0);outVendas.textContent=`Cliques ${c} • Vendas ${v} • R$${f.toFixed(2)}`}
+function addPts(p){let s=(+localStorage.getItem('tt_pts')||0)+p;localStorage.setItem('tt_pts',s);renderGame()}
+function renderGame(){let s=+localStorage.getItem('tt_pts')||0,c=+current.value||0;gPts.textContent=s;gNivel.textContent=s>300?'Viral':s>100?'Crescendo':'Iniciante';gFalta.textContent=Math.max(0,1000-c);outSelos.textContent='Selos: '+((s>=30?'🎬 ':'')+(s>=150?'🔥 ':'')+(c>=1000?'📡 LIVE ':'' )||'poste p/ ganhar')}
+function salvarPix(){localStorage.setItem('tt_pix',pixKey.value||'');alert('Pix salvo!')}
+function showTab(t){localStorage.setItem('tt_tab',t);document.querySelectorAll('#mainNav a').forEach(a=>a.classList.toggle('on',a.dataset.tab==t));
+let map={dash:[/dashboard|o que fazer/i],criar:[/roteiro|semana|legenda/i],studio:[/prompt vídeo|prompt imagem|meu avatar/i],videoia:[/prompt vídeo/i],imagem:[/prompt imagem/i],shop:[/shop/i],video:[/análise de vídeos/i],top:[/análise de vídeos/i],agenda:[/checklist|agenda|histórico|capas|pontos|vendas/i],perfil:[/análise de perfil/i]};
+document.querySelectorAll('.wrap#app .card').forEach(c=>{let h=(c.querySelector('h2')||{}).textContent||'';let pats=map[t]||[];c.style.display=pats.some(r=>r.test(h))?'':'none'});
+document.querySelectorAll('.wrap#app .sec-label').forEach(s=>{s.style.display='none'});if(t=='perfil'&&bioTxt.value)analisarPerfil();window.scrollTo({top:0});return false}
+function salvarSnap(){let e={d:new Date().toLocaleDateString('pt-BR'),c:+current.value||0,v:+views30.value||0,l:+likesTotal.value||0};let h=JSON.parse(localStorage.getItem('tt_evo')||'[]');h.push(e);localStorage.setItem('tt_evo',JSON.stringify(h.slice(-30)));renderEvo(true)}
+function limparSnap(){localStorage.removeItem('tt_evo');renderEvo(true)}
+function renderEvo(alertOn){let h=JSON.parse(localStorage.getItem('tt_evo')||'[]');let today=new Date().toLocaleDateString('pt-BR');if(!h.length){outEvo.innerHTML='Evolução: atualize os números acima e salve o snapshot de hoje 👆.';return}let f=h[0],l=h[h.length-1];let dc=l.c-f.c,dv=l.v-f.v,dl=l.l-f.l;let bars=h.slice(-7).map(x=>{let p=Math.max(4,Math.round(x.c/ (goal.value||1000)*100));return `<div style="flex:1;text-align:center"><div style="background:#25F4EE;border-radius:4px;height:${p}px;min-height:6px"></div><div style="font-size:10px">${x.c}</div></div>`}).join('');outEvo.innerHTML=`Evolução ${f.d}→${l.d}: <b>+${dc} seguidores</b> • +${dv} views • +${dl} likes${l.d!=today?' • <b>salve o snapshot de hoje 👆</b>':''}<br><div style="display:flex;gap:4px;align-items:end;margin-top:6px">${bars}</div>`}
+function scoreVd(v,l,c){return v+l*10+c*20}
+function addVideo(){let t=vdTitulo.value||'vídeo',v=+vdViews.value||0,l=+vdLikes.value||0,c=+vdComm.value||0,vv=+vdVendas.value||0,f=+vdFollows.value||0;let h=JSON.parse(localStorage.getItem('tt_videos')||'[]');h.push({t,v,l,c,vv,f,s:scoreVd(v,l,c)});localStorage.setItem('tt_videos',JSON.stringify(h));renderVideos();addPts(10);vdTitulo.value='';vdViews.value='';vdLikes.value='';vdComm.value='';vdVendas.value='';vdFollows.value=''}
+function renderVideos(){let h=JSON.parse(localStorage.getItem('tt_videos')||'[]').sort((a,b)=>b.s-a.s);if(!h.length){outVideos.innerHTML='<p class="small">Cadastre 2+ vídeos p/ rankear.</p>';return}let rates=h.map(x=>x.v?(x.f||0)*1000/x.v:0);let bi=rates.indexOf(Math.max(...rates));outVideos.innerHTML=h.map((x,i)=>{let r=x.v?((x.f||0)*1000/x.v).toFixed(2):'0.00';return `<div class="idea">${i==0?'<span class="badge">🏆 MELHOR</span> ':''}${i==bi&&x.v?'<span class="badge">🔝 CONVERTE</span> ':''}<b>${esc(x.t)}</b><br><span class="small">${x.v} views • ${x.l} likes • ${x.c} comm • ${x.vv} vendas • +${x.f||0} seg (${r}/1k views) • score ${x.s}</span><br><button class="copy" onclick="delVideo(${i})">Excluir</button></div>`}).join('')+`<p class="small">Repita o padrão do melhor: <b>${esc(h[0].t)}</b>. Se provador vence, faça 70% provador.</p>`}
+function delVideo(i){let h=JSON.parse(localStorage.getItem('tt_videos')||'[]').sort((a,b)=>b.s-a.s);h.splice(i,1);localStorage.setItem('tt_videos',JSON.stringify(h));renderVideos()}
+function avGuia(){let m=avModo.value;outAvGuia.innerHTML=m=='tenho'?`<div class="idea">✅ <b>Faça assim:</b><br>1️⃣ Envie sua foto na IA<br>2️⃣ Automático: sua aparência já entra em todo prompt<br>3️⃣ Use sempre a mesma foto</div>`:`<div class="idea">🆕 <b>Faça assim:</b><br>1️⃣ Tire 5 fotos claras<br>2️⃣ Crie grátis: HeyGen (vídeo) ou Leonardo (foto)<br>3️⃣ Preencha acima e gere o lock</div>`}
+function avPreview(el){let f=el.files&&el.files[0];if(!f)return;let r=new FileReader();r.onload=e=>{avPrev.innerHTML=`<img src="${e.target.result}" style="width:100%;border-radius:12px;margin-top:6px">`};r.readAsDataURL(f)}
+function gerarLock(){let l=`Same woman every time, ${esc(avIdade.value||27)} years old, ${esc(avCabelo.value||'dark brown wavy hair')}, ${esc(avPele.value||'medium skin')}, brown eyes, natural makeup, ${esc(avEstilo.value||'elegant casual style')}, same face and identity in every image, 100 percent consistent`;localStorage.setItem('tt_avatar_lock',l);outLock.innerHTML=`<div class="idea" id="lockOut"><span class="badge">MINHA APARÊNCIA FIXA</span><div class="small">Pronto! O TikGrow coloca sozinho em todo prompt de vídeo e imagem.<br><br>${l}</div><button class="copy" onclick="copyTxt('lockOut')">Copiar aparência</button></div>`;addPts(10)}
+function lockTxt(){return localStorage.getItem('tt_avatar_lock')||''}
+function fotoPrompt(){return `Photorealistic portrait photo, beautiful Brazilian woman, ${avIdade.value||27} years old, ${avCabelo.value||'dark brown wavy hair'}, ${avPele.value||'medium skin'}, brown eyes, natural makeup, ${avEstilo.value||'elegant casual style'}, soft daylight, sharp focus, high quality`}
+function gerarFotoAvatar(seed){if(!avIdade.value||!avCabelo.value||!avPele.value||!avEstilo.value){alert('Preencha idade, cabelo, pele e estilo acima. A foto é gerada dessas informações.');return}seed=seed||Math.floor(Math.random()*999999);let url='https://image.pollinations.ai/prompt/'+encodeURIComponent(fotoPrompt())+'?width=768&height=1024&seed='+seed+'&nologo=true&model=flux';localStorage.setItem('tt_avatar_seed',seed);outFoto.innerHTML=`<div class="idea" id="fotoOut"><span class="badge">MINHA FOTO</span><br><img id="fotoImg" src="${url}" style="width:100%;border-radius:12px" onload="fotoOk()" onerror="fotoErro()"><p class="small" id="fotoMsg">Gerando... aguarde até 1 min.</p><div class="row"><button class="copy" onclick="baixarFoto()">Baixar foto ⬇️</button><button class="copy" onclick="gerarFotoAvatar()">Nova variação 🔄</button></div></div>`}
+function fotoOk(){let m=document.getElementById('fotoMsg');if(m)m.textContent='Pronta! Toque em Baixar foto.'}
+function fotoErro(){let m=document.getElementById('fotoMsg');if(m)m.textContent='Falhou (internet?). Toque em Nova variação.'}
+async function baixarFoto(){let img=document.getElementById('fotoImg');if(!img||!img.src){alert('Gere a foto primeiro.');return}try{let r=await fetch(img.src);let b=await r.blob();let a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='meu-avatar.jpg';a.click();alert('Foto baixada! Use como foto de perfil ou referência na IA.')}catch(e){window.open(img.src,'_blank');alert('Toque e segure a imagem para salvar.')}}
+function analisarPerfil(){let b=bioTxt.value||'';let pts=0,tips=[];if(/✨|👗|💖|🔥|👇|🛍️/.test(b)){pts+=20}else tips.push('Adicione 2-3 emojis (nicho + CTA).');if(/vitrine|sacolinha|link|👇|↓/i.test(b)){pts+=20}else tips.push('Adicione CTA p/ vitrine: “Confira na Vitrine 👇”.');if(/casual|fitness|feminino|look|moda/i.test(b)){pts+=20}else tips.push('Deixe o nicho claro: “Looks femininos casual→fitness”.');if(/todo dia|19h|novo|diário/i.test(b)){pts+=20}else tips.push('Adicione frequência: “Vídeo novo todo dia 19h”.');if(b.length>=40&&b.length<=160){pts+=20}else tips.push('Bio ideal 40-160 caracteres (atual '+b.length+').');let sug=`✨ Looks femininos que encantam 👗 Casual → Fitness\n🛍️ Achadinhos na Vitrine 👇\n🎬 Vídeo novo todo dia 19h`;outBio.innerHTML=`<div class="idea"><span class="badge">SCORE ${pts}/100 ${pts>=80?'✅ ÓTIMA':pts>=50?'⚠️ MÉDIA':'❌ FRACA'}</span><br>${tips.length?tips.map(t=>'• '+t).join('<br>'):'Bio pronta p/ converter!' }<br><br><b>Sugestão pronta:</b><br><span style="white-space:pre-line">${sug}</span><br><button class="copy" onclick="copyTxt('outBio')">Copiar sugestão</button></div>`}
+function faseAuto(){let c=+current.value||0;faseTxt.textContent=c<1000?'0-1k validação':c<10000?'1k-10k escala':'10k+ monetiza';planoFase(c<1000?1:2,true)}
+function pacoteHoje(){let pool=['conjunto fitness preto','vestido floral midi rosa','Dia 1/30 saindo do zero','legging modeladora','3 frases que me salvaram','top 3 vitrine','testando base viral'];let day=Math.floor(Date.now()/864e5);let p=hookBase.value||pool[day%pool.length];tema.value=p;legTema.value=p;pLook.value=p;hookBase.value=p;capaTxt.value=p.length>24?p.slice(0,24):p;gerarUm();gerarLeg();gerarPrompt();gerarHooksIA();gerarCapa();addPts(20);alert('⚡ Pacote de hoje pronto: roteiro + legenda + prompt + hooks + capa. Veja nas abas Criar e Estúdio IA!')}
+function hojePostado(){let d=Math.min(30,new Date().getDate());['11h','15h','19h'].forEach(t=>setAgenda(d+'-'+t,'postado'));gerarAgenda();alert('Dia '+d+' marcado como postado ✅ (+90 pts)')}
+function planoFase(f,silent){let isM=tipo.value=='motivacao'||shopCat.value=='motivacao';let t=f==1?(isM?`✅ <b>Hoje:</b> poste 3 vídeos (manhã frase, tarde história, noite série).<br>✅ <b>Responda</b> todos os comentários.<br>✅ <b>Repita</b> amanhã o que deu mais view.`:`✅ <b>Hoje:</b> poste 3 provadores (11h, 15h, 19h).<br>✅ <b>Responda</b> tudo em 2h.<br>✅ <b>Fixe</b> os 3 melhores no perfil.`):`✅ <b>Hoje:</b> 2 vídeos + 1 LIVE 30min.<br>✅ <b>Série fixa</b> toda semana.<br>✅ <b>Oferta</b> na vitrine em 70% dos vídeos.`;outFase.innerHTML=`<div class="idea">${t}</div>`;if(!silent)addPts(5)}
+function gerarHooksIA(){let b=esc(hookBase.value||'Dia 1/30 saindo do zero');let isM=/motiv|disciplina|foco|mentalidade|supera|dia \d|zero|desist/i.test(b)||tipo.value=='motivacao';
+let H=isM?[`${b} — ninguém acredita na virada`,`Dia ${b.match(/\d+/)?.[0]||'1'}/30: não desista hoje`,`3 frases que me tiraram do fundo do poço`,`Se eu desistisse, você não veria isso`,`POV: você quer desistir hoje`,`Errei 5 anos até entender ${b}`,`Consistência > motivação: ${b}`,`Carta pra quem tá no zero hoje`,`O que eu faria se recomeçasse do zero`,`Dueto: reagindo a superação real`]:[`Pare de usar ${b} assim!`,`3 erros com ${b} que te deixam menor`,`Testei ${b} por 7 dias e...`,`${b} de R$XX que parece R$300`,`POV: você acha ${b} perfeito`,`Ninguém te conta isso sobre ${b}`,`Antes/depois real com ${b}`,`Qual ${b} dura mais? Teste`,`Respondo: ${b} vale a pena?`,`Arrume-se comigo + ${b} em 30s`];let seo=isM?['motivação diária','mentalidade forte','disciplina diária','superação','foco total']:['look fitness barato','provador moda feminina','achadinho tiktokshop','conjunto academia','look casual barato'];outHooks.innerHTML=H.map((h,i)=>`<div class="idea"><span class="badge">HOOK ${i+1}</span> ${h}<br><span class="small">SEO: ${seo[i%seo.length]} • 1ª frase legenda + fala</span></div>`).join('')+`<button class="copy" onclick="copyTxt('outHooks')">Copiar hooks</button>`;salvarHistAuto();addPts(10)}
+current.oninput=upd;goal.oninput=upd;views30.oninput=upd;likesTotal.oninput=upd;bioTxt.oninput=()=>localStorage.setItem('tt_bio',bioTxt.value);
+try{let d=JSON.parse(localStorage.getItem('tt_dash')||'null');if(d){current.value=d.c;goal.value=d.g;views30.value=d.v;likesTotal.value=d.l}let b=localStorage.getItem('tt_bio');if(b)bioTxt.value=b}catch(e){}
+checkAuth();upd();renderChecks();gerarSemana();renderShop();gerarAgenda();renderHist();renderVendas();renderGame();renderEvo();renderVideos();faseAuto();explicarTipo();explicarPTipo();avGuia();let _t=localStorage.getItem('tt_tab')||'dash';if(_t=='videoia'||_t=='imagem')_t='studio';showTab(_t);
+</script>
+</body></html>
