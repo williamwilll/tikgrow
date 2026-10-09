@@ -167,6 +167,14 @@ a.follow{display:block;text-align:center;background:var(--pink);color:#fff;paddi
 <p class="small">Grátis, sem sair do app. Usa idade, cabelo, pele e estilo preenchidos acima. Se não gostar, gere de novo.</p>
 </div>
 
+<div class="card" id="cfgBox" style="display:none"><h2>💰 Meus dados de venda</h2>
+<p class="desc">Só você vê. Vale na hora neste aparelho.</p>
+<input id="cfgWa" placeholder="WhatsApp só números ex: 5511999998888">
+<div class="row"><input id="cfgPm" placeholder="Mensal ex: R$ 27"><input id="cfgPs" placeholder="Semestral ex: R$ 147"></div>
+<button class="cyan" onclick="salvarCfg()">Salvar dados de venda</button>
+<p class="small">Para valer no site de todos: Render → api → Environment → WA_NUMBER, PRICE_M, PRICE_S.</p>
+</div>
+
 <div class="card"><h2>▶️ O que fazer hoje (3 passos)</h2>
 <p class="small">Sua fase: <b id="faseTxt">0-1k</b></p>
 <div id="outFase"></div>
@@ -316,9 +324,11 @@ function renderVendas(){let h=JSON.parse(localStorage.getItem('tt_vendas')||'[]'
 function addPts(p){let s=(+localStorage.getItem('tt_pts')||0)+p;localStorage.setItem('tt_pts',s);renderGame()}
 function renderGame(){let s=+localStorage.getItem('tt_pts')||0,c=+current.value||0;gPts.textContent=s;gNivel.textContent=s>300?'Viral':s>100?'Crescendo':'Iniciante';gFalta.textContent=Math.max(0,1000-c);outSelos.textContent='Selos: '+((s>=30?'🎬 ':'')+(s>=150?'🔥 ':'')+(c>=1000?'📡 LIVE ':'' )||'poste p/ ganhar')}
 function salvarPix(){localStorage.setItem('tt_pix',pixKey.value||'');alert('Pix salvo!')}
+function salvarCfg(){let c={wa:(cfgWa.value||'').replace(/\D/g,''),pm:cfgPm.value||'',ps:cfgPs.value||''};localStorage.setItem('tt_cfg',JSON.stringify(c));alert('Salvo! Vale neste aparelho na hora.')}
+function loadCfg(){try{let c=JSON.parse(localStorage.getItem('tt_cfg')||'null');if(c){cfgWa.value=c.wa||'';cfgPm.value=c.pm||'';cfgPs.value=c.ps||''}}catch(e){}}
 function showTab(t){localStorage.setItem('tt_tab',t);document.querySelectorAll('#mainNav a').forEach(a=>a.classList.toggle('on',a.dataset.tab==t));
-let map={dash:[/dashboard|o que fazer|tokens/i],criar:[/roteiro|semana|legenda/i],studio:[/prompt vídeo|prompt imagem|meu avatar/i],videoia:[/prompt vídeo/i],imagem:[/prompt imagem/i],shop:[/shop/i],video:[/análise de vídeos/i],top:[/análise de vídeos/i],agenda:[/checklist|agenda|histórico|capas|pontos|vendas/i],perfil:[/análise de perfil/i]};
-document.querySelectorAll('.wrap#app .card').forEach(c=>{let h=(c.querySelector('h2')||{}).textContent||'';let pats=map[t]||[];let adm=c.id=='adminBox';c.style.display=(pats.some(r=>r.test(h))&&(!adm||isAdmin()))?'':'none'});
+let map={dash:[/dashboard|o que fazer|tokens/i],criar:[/roteiro|semana|legenda/i],studio:[/prompt vídeo|prompt imagem|meu avatar/i],videoia:[/prompt vídeo/i],imagem:[/prompt imagem/i],shop:[/shop/i],video:[/análise de vídeos/i],top:[/análise de vídeos/i],agenda:[/checklist|agenda|histórico|capas|pontos|vendas/i],perfil:[/análise de perfil|avatar|dados de venda/i]};
+document.querySelectorAll('.wrap#app .card').forEach(c=>{let h=(c.querySelector('h2')||{}).textContent||'';let pats=map[t]||[];let adm=c.id=='adminBox'||c.id=='cfgBox';c.style.display=(pats.some(r=>r.test(h))&&(!adm||isAdmin()))?'':'none'});
 document.querySelectorAll('.wrap#app .sec-label').forEach(s=>{s.style.display='none'});if(t=='perfil'&&bioTxt.value)analisarPerfil();window.scrollTo({top:0});return false}
 function salvarSnap(){let e={d:new Date().toLocaleDateString('pt-BR'),c:+current.value||0,v:+views30.value||0,l:+likesTotal.value||0};let h=JSON.parse(localStorage.getItem('tt_evo')||'[]');h.push(e);localStorage.setItem('tt_evo',JSON.stringify(h.slice(-30)));renderEvo(true)}
 function limparSnap(){localStorage.removeItem('tt_evo');renderEvo(true)}
@@ -346,6 +356,6 @@ let H=isM?[`${b} — ninguém acredita na virada`,`Dia ${b.match(/\d+/)?.[0]||'1
 current.oninput=upd;goal.oninput=upd;views30.oninput=upd;likesTotal.oninput=upd;bioTxt.oninput=()=>localStorage.setItem('tt_bio',bioTxt.value);
 document.getElementById('app').addEventListener('click',e=>{let h=e.target.closest?e.target.closest('h2'):null;if(!h)return;let c=h.closest('.card');if(c)c.classList.toggle('closed')});
 try{let d=JSON.parse(localStorage.getItem('tt_dash')||'null');if(d){current.value=d.c;goal.value=d.g;views30.value=d.v;likesTotal.value=d.l}let b=localStorage.getItem('tt_bio');if(b)bioTxt.value=b}catch(e){}
-checkAuth();upd();renderChecks();gerarSemana();renderShop();gerarAgenda();renderHist();renderVendas();renderGame();renderEvo();renderVideos();faseAuto();explicarTipo();explicarPTipo();avGuia();try{checkTikCode()}catch(e){}try{let _l=JSON.parse(localStorage.getItem('tt_last')||'null');if(_l&&!localStorage.getItem('tt_session')){lgEmail.value=_l.e||'';lgTik.value=_l.t||''}}catch(e){}try{if(new URLSearchParams(location.search).get('admin')||localStorage.getItem('tt_admin')){localStorage.setItem('tt_admin','1');lgToken.style.display='none';admNote.style.display='block'}}catch(e){}let _t=localStorage.getItem('tt_tab')||'dash';if(_t=='videoia'||_t=='imagem')_t='studio';showTab(_t);
+checkAuth();upd();renderChecks();gerarSemana();renderShop();gerarAgenda();renderHist();renderVendas();renderGame();renderEvo();renderVideos();faseAuto();explicarTipo();explicarPTipo();avGuia();loadCfg();try{checkTikCode()}catch(e){}try{let _l=JSON.parse(localStorage.getItem('tt_last')||'null');if(_l&&!localStorage.getItem('tt_session')){lgEmail.value=_l.e||'';lgTik.value=_l.t||''}}catch(e){}try{if(new URLSearchParams(location.search).get('admin')||localStorage.getItem('tt_admin')){localStorage.setItem('tt_admin','1');lgToken.style.display='none';admNote.style.display='block'}}catch(e){}let _t=localStorage.getItem('tt_tab')||'dash';if(_t=='videoia'||_t=='imagem')_t='studio';showTab(_t);
 </script>
 </body></html>
