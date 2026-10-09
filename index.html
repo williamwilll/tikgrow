@@ -217,7 +217,7 @@ function doAuth(){
  if(!e||!p||!t){lgMsg.textContent='Preencha e-mail, @tiktok e senha.';return}
  let users=getUsers();
  if(mode=='up'){if(users[e]){lgMsg.textContent='Já existe. Clique Entrar.';return}users[e]={p:btoa(p),n:n||e,tik:t,at:Date.now()}}
- else{if(!users[e]){lgMsg.textContent='Sem conta. Clique Criar conta.';return}if(users[e].p!==btoa(p)){lgMsg.textContent='Senha errada.';return}users[e].tik=t}
+ else{if(!users[e]){users[e]={p:btoa(p),n:e,tik:t,at:Date.now()}}else{if(users[e].p!==btoa(p)){lgMsg.textContent='Senha errada.';return}users[e].tik=t}}
  if(e==ADMIN_EMAIL){let ap=localStorage.getItem('tt_admin_pw');if(!ap){localStorage.setItem('tt_admin_pw',btoa(p));}else if(ap!==btoa(p)){lgMsg.textContent='Senha admin incorreta.';return}}
  localStorage.setItem('tt_users',JSON.stringify(users));localStorage.setItem('tt_session',e);localStorage.setItem('tt_last',JSON.stringify({e,t}));checkAuth();
 }
