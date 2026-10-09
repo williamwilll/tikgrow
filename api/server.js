@@ -10,6 +10,22 @@ const REDIRECT_URI = process.env.REDIRECT_URI || 'https://tikgrow.onrender.com/'
 
 app.get('/api/health', (req, res) => res.json({ ok: true }));
 
+const TOKEN_SECRET = process.env.TOKEN_SECRET || 'TikGrow2026LariShop';
+function cyrb(s){let h1=0xdeadbeef,h2=0x41c6ce57;for(let i=0;i<s.length;i++){let c=s.charCodeAt(i);h1=Math.imul(h1^c,2654435761);h2=Math.imul(h2^c,1597334677)}h1=Math.imul(h1^(h1>>>16),2246822507)^Math.imul(h2^(h2>>>13),3266489909);h2=Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909);return 4294967296*(2097151&h2)+(h1>>>0)}
+app.post('/api/token/check', (req, res) => {
+  try {
+    let t = String(((req.body || {}).token) || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+    if (t.slice(0, 2) !== 'TG') return res.json({ ok: false, reason: 'formato' });
+    let b = t.slice(2);
+    if (b.length !== 14) return res.json({ ok: false, reason: 'formato' });
+    let R = b.slice(0, 6), S = b.slice(6, 10), E = b.slice(10, 14);
+    let s2 = cyrb(TOKEN_SECRET + R + E).toString(36).toUpperCase().replace(/[^A-Z0-9]/g, '').slice(-4).padStart(4, '0');
+    if (s2 !== S) return res.json({ ok: false, reason: 'assinatura' });
+    let ex = parseInt(E, 36), now = Math.floor(Date.now() / 864e5);
+    return res.json({ ok: ex >= now, exp: ex, reason: ex >= now ? '' : 'expirado' });
+  } catch (e) { res.json({ ok: false }); }
+});
+
 app.post('/api/tiktok/token', async (req, res) => {
   try {
     const code = (req.body || {}).code;
