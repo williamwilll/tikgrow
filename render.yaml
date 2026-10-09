@@ -6,3 +6,19 @@ services:
     staticPublishPath: ./
     plan: free
     autoDeploy: true
+  - type: web
+    name: tikgrow-api
+    runtime: node
+    rootDir: api
+    buildCommand: npm install
+    startCommand: node server.js
+    plan: free
+    autoDeploy: true
+    envVars:
+      - key: TIKTOK_CLIENT_KEY
+        value: awfyanz7y2bffl7m
+      - key: REDIRECT_URI
+        value: https://tikgrow.onrender.com/
+      - key: ALLOWED_ORIGIN
+        value: https://tikgrow.onrender.com
+      # TIKTOK_CLIENT_SECRET: adicionar MANUALMENTE no painel do Render (nunca no repo)
