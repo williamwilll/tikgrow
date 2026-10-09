@@ -63,6 +63,7 @@ a.follow{display:block;text-align:center;background:var(--pink);color:#fff;paddi
 <div id="tikInfo" class="small">Toque em Validar meu @.</div>
 <div class="row"><input id="fixTik" placeholder="@larisantosstyle"><button class="ghost" onclick="corrigirArroba()">Validar</button></div>
 <div class="row"><button class="cyan" onclick="conectarTikTok()">Conectar TikTok oficial</button></div>
+<label class="small"><input type="checkbox" id="sbMode" checked style="width:16px"> Modo teste (Sandbox) — desmarque após aprovação</label>
 <div id="tikAuth" class="small"></div>
 <div class="row"><input id="current" type="number" value="124" placeholder="Seguidores"><input id="goal" type="number" value="1000" placeholder="Meta"></div>
 <div class="row"><input id="views30" type="number" placeholder="Views 30d ex: 5000"><input id="likesTotal" type="number" placeholder="Curtidas ex: 301"></div>
@@ -228,10 +229,11 @@ function tokOk(){let p=parseToken(localStorage.getItem('tt_token')||'');return !
 function novoToken(){let g=genToken(tkDays.value);let h=JSON.parse(localStorage.getItem('tt_tokens')||'[]');h.unshift({t:g.t,exp:g.exp,at:new Date().toLocaleString('pt-BR')});localStorage.setItem('tt_tokens',JSON.stringify(h));outToken.innerHTML=`<div class="idea" id="tkNew"><span class="badge">TOKEN NOVO</span><br><b>${g.t}</b><br><span class="small">Válido até ${new Date(g.exp*864e5).toLocaleDateString('pt-BR')}</span><br><button class="copy" onclick="copyTxt('tkNew')">Copiar token</button></div>`;renderTokens();addPts(10)}
 function renderTokens(){let box=document.getElementById('outTokens');if(!box)return;let h=JSON.parse(localStorage.getItem('tt_tokens')||'[]');box.innerHTML=h.length?h.map((x,i)=>{let ok=(parseToken(x.t)||{}).ok;return `<div class="idea" id="tk${i}">${ok?'':'<span class="badge">EXPIRADO</span> '}<b>${esc(x.t)}</b><br><span class="small">Expira ${new Date(x.exp*864e5).toLocaleDateString('pt-BR')}</span><br><div class="row"><button class="copy" onclick="copyTxt('tk${i}')">Copiar</button><button class="copy" onclick="delToken(${i})">Revogar</button></div></div>`}).join(''):'<p class="small">Nenhum token gerado.</p>'}
 function delToken(i){let h=JSON.parse(localStorage.getItem('tt_tokens')||'[]');let t=h[i]&&h[i].t;h.splice(i,1);localStorage.setItem('tt_tokens',JSON.stringify(h));renderTokens();if(t)alert('Revogado aqui. Para bloquear online, adicione em Render → api → REVOKED_TOKENS:\n'+t)}
-const TIKTOK_KEY='awfyanz7y2bffl7m',TIKTOK_RED='https://tikgrow.onrender.com/',TIKTOK_SCOPES='user.info.profile,user.info.stats,video.list',TIKTOK_API='https://tikgrow-api.onrender.com';
-function conectarTikTok(){location.href='https://www.tiktok.com/v2/auth/authorize/?client_key='+TIKTOK_KEY+'&scope='+encodeURIComponent(TIKTOK_SCOPES)+'&response_type=code&redirect_uri='+encodeURIComponent(TIKTOK_RED)+'&state=tikgrow'}
+const TIKTOK_KEY='awfyanz7y2bffl7m',TIKTOK_SB='sbaw1r5kzrwvnbe46p',TIKTOK_RED='https://tikgrow.onrender.com/',TIKTOK_SCOPES='user.info.profile,user.info.stats,video.list',TIKTOK_API='https://tikgrow-api.onrender.com';
+function sbOn(){try{return document.getElementById('sbMode').checked}catch(e){return true}}
+function conectarTikTok(){let k=sbOn()?TIKTOK_SB:TIKTOK_KEY;location.href='https://www.tiktok.com/v2/auth/authorize/?client_key='+k+'&scope='+encodeURIComponent(TIKTOK_SCOPES)+'&response_type=code&redirect_uri='+encodeURIComponent(TIKTOK_RED)+'&state=tikgrow'}
 async function checkTikCode(){let q=new URLSearchParams(location.search);if(q.get('state')&&q.get('state')!='tikgrow')return;let c=q.get('code');history.replaceState({},'',location.pathname);if(!c)return;tikAuth.textContent='Conectando ao TikTok...';try{
-let t=await(await fetch(TIKTOK_API+'/api/tiktok/token',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:c})})).json();
+let t=await(await fetch(TIKTOK_API+'/api/tiktok/token',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:c,env:sbOn()?'sb':'prod'})})).json();
 if(!t.access_token)throw 0;sessionStorage.setItem('tt_tok',t.access_token);
 let m=await(await fetch(TIKTOK_API+'/api/tiktok/me',{headers:{Authorization:'Bearer '+t.access_token}})).json();
 if(m.follower_count!=null){current.value=m.follower_count;if(m.likes_count!=null)likesTotal.value=m.likes_count;upd();salvarSnap()}
