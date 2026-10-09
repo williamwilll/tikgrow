@@ -16,10 +16,22 @@ app.get('/api/config', (req, res) => res.json({
 }));
 
 const TOKEN_SECRET = process.env.TOKEN_SECRET || 'TikGrow2026LariShop';
+const REVOKED = new Set((process.env.REVOKED_TOKENS || '').split(',').map(s => s.trim().toUpperCase().replace(/[^A-Z0-9]/g, '')).filter(Boolean));
+const HITS = {};
+function limited(req, res, max, win) {
+  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '?';
+  const k = ip + req.path, n = Date.now();
+  HITS[k] = (HITS[k] || []).filter(t => n - t < win);
+  if (HITS[k].length >= max) { res.status(429).json({ ok: false, error: 'muitas tentativas' }); return true; }
+  HITS[k].push(n);
+  return false;
+}
 function cyrb(s){let h1=0xdeadbeef,h2=0x41c6ce57;for(let i=0;i<s.length;i++){let c=s.charCodeAt(i);h1=Math.imul(h1^c,2654435761);h2=Math.imul(h2^c,1597334677)}h1=Math.imul(h1^(h1>>>16),2246822507)^Math.imul(h2^(h2>>>13),3266489909);h2=Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909);return 4294967296*(2097151&h2)+(h1>>>0)}
 app.post('/api/token/check', (req, res) => {
+  if (limited(req, res, 30, 60000)) return;
   try {
     let t = String(((req.body || {}).token) || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+    if (REVOKED.has(t)) return res.json({ ok: false, reason: 'revogado' });
     if (t.slice(0, 2) !== 'TG') return res.json({ ok: false, reason: 'formato' });
     let b = t.slice(2);
     if (b.length !== 14) return res.json({ ok: false, reason: 'formato' });
@@ -32,6 +44,7 @@ app.post('/api/token/check', (req, res) => {
 });
 
 app.post('/api/tiktok/token', async (req, res) => {
+  if (limited(req, res, 20, 60000)) return;
   try {
     const code = (req.body || {}).code;
     if (!code) return res.status(400).json({ error: 'code requerido' });
