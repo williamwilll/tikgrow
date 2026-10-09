@@ -196,6 +196,7 @@ a.follow{display:block;text-align:center;background:var(--pink);color:#fff;paddi
 
 <script>
 const U='larisantosstyle';
+const ADMIN_EMAIL='willsradd@gmail.com';
 const TIKTOK_KEY='awfyanz7y2bffl7m',TIKTOK_RED='https://tikgrow.onrender.com/',TIKTOK_SCOPES='user.info.profile,user.info.stats,video.list',TIKTOK_API='https://tikgrow-api.onrender.com';
 function conectarTikTok(){location.href='https://www.tiktok.com/v2/auth/authorize/?client_key='+TIKTOK_KEY+'&scope='+encodeURIComponent(TIKTOK_SCOPES)+'&response_type=code&redirect_uri='+encodeURIComponent(TIKTOK_RED)+'&state=tikgrow'}
 async function checkTikCode(){let q=new URLSearchParams(location.search);let c=q.get('code');history.replaceState({},'',location.pathname);if(!c)return;tikAuth.textContent='Conectando ao TikTok...';try{
@@ -216,9 +217,11 @@ function doAuth(){
  let users=getUsers();
  if(mode=='up'){if(users[e]){lgMsg.textContent='Já existe. Clique Entrar.';return}users[e]={p:btoa(p),n:n||e,tik:t,at:Date.now()}}
  else{if(!users[e]){lgMsg.textContent='Sem conta. Clique Criar conta.';return}if(users[e].p!==btoa(p)){lgMsg.textContent='Senha errada.';return}users[e].tik=t}
+ if(e==ADMIN_EMAIL){let ap=localStorage.getItem('tt_admin_pw');if(!ap){localStorage.setItem('tt_admin_pw',btoa(p));}else if(ap!==btoa(p)){lgMsg.textContent='Senha admin incorreta.';return}}
  localStorage.setItem('tt_users',JSON.stringify(users));localStorage.setItem('tt_session',e);localStorage.setItem('tt_last',JSON.stringify({e,t}));checkAuth();
 }
-function checkAuth(){let s=localStorage.getItem('tt_session'),u=getUsers();if(s&&u[s]){loginGate.style.display='none';app.style.display='block';userHi.textContent='Logada: '+(u[s].n||s)+' • @'+u[s].tik;fixTik.value=u[s].tik}else{loginGate.style.display='flex';app.style.display='none'}}
+function isAdmin(){try{return (localStorage.getItem('tt_session')||'')==ADMIN_EMAIL}catch(e){return false}}
+function checkAuth(){let s=localStorage.getItem('tt_session'),u=getUsers();if(s&&u[s]){loginGate.style.display='none';app.style.display='block';userHi.textContent='Logada: '+(u[s].n||s)+' • @'+u[s].tik+(s==ADMIN_EMAIL?' • ADMIN':'');fixTik.value=u[s].tik}else{loginGate.style.display='flex';app.style.display='none'}}
 function doLogout(){localStorage.removeItem('tt_session');checkAuth()}
 async function puxarDadosConta(manual){
  let s=localStorage.getItem('tt_session'),u=getUsers(),tik=((u[s]&&u[s].tik)||fixTik.value||U).replace('@','').trim();if(!tik)return;
