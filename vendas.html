@@ -46,8 +46,9 @@ footer{text-align:center;color:#999;font-size:12px;padding:0 0 34px}
 </div>
 <script>
 let CFG={wa:'5500000000000',pm:'R$ 27',ps:'R$ 147'};
+function escCfg(s){return String(s||'').replace(/[<>&"']/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c]))}
 try{let l=JSON.parse(localStorage.getItem('tt_cfg')||'null');if(l){if(l.wa)CFG.wa=l.wa;if(l.pm)CFG.pm=l.pm;if(l.ps)CFG.ps=l.ps}}catch(e){}
-function applyCfg(){document.getElementById('priceM').innerHTML=CFG.pm+'<small>/mês</small>';document.getElementById('priceS').innerHTML=CFG.ps+'<small>/6 meses</small>';document.querySelectorAll('a[data-plan]').forEach(a=>{a.href='https://wa.me/'+CFG.wa+'?text='+encodeURIComponent('Quero o TikGrow ('+a.dataset.plan+')');a.target='_blank'})}
+function applyCfg(){document.getElementById('priceM').innerHTML=escCfg(CFG.pm)+'<small>/mês</small>';document.getElementById('priceS').innerHTML=escCfg(CFG.ps)+'<small>/6 meses</small>';document.querySelectorAll('a[data-plan]').forEach(a=>{a.href='https://wa.me/'+encodeURIComponent(CFG.wa)+'?text='+encodeURIComponent('Quero o TikGrow ('+a.dataset.plan+')');a.target='_blank'})}
 async function cfgLoad(){try{let r=await fetch('https://tikgrow-api.onrender.com/api/config');let j=await r.json();if(!localStorage.getItem('tt_cfg')){if(j.wa)CFG.wa=j.wa;if(j.pm)CFG.pm=j.pm;if(j.ps)CFG.ps=j.ps}}catch(e){}applyCfg()}
 cfgLoad();
 </script>
