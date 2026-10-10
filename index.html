@@ -53,9 +53,12 @@ button.ghost{background:#22232e}button.cyan{background:var(--cyan);color:#000}
 #bottom a b{display:block;font-size:10px;font-weight:700;color:var(--mut);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #bottom a.on{background:#2a2210}
 #bottom a.on b{color:var(--cyan)}
-@media(min-width:640px){.wrap{max-width:1140px;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:0 14px;align-items:start}
-.topbar,.sub,.nav,.foot{grid-column:1/-1}.wrap>.sec-label{grid-column:1/-1}.wrap#app>.card{grid-column:span 6;margin-top:0}}
-@media(min-width:1200px){.wrap#app>.card{grid-column:span 4}}
+@media(min-width:640px){.wrap{max-width:1140px}
+#cards{display:grid;grid-template-columns:1fr;gap:0 14px;align-items:start}
+#cards.cols2{grid-template-columns:repeat(2,minmax(0,1fr))}
+#cards.cols3{grid-template-columns:repeat(3,minmax(0,1fr))}
+#cards>.card{margin-top:12px}}
+@media(min-width:1200px){.logo{font-size:26px}}
 </style>
 </head>
 <body>
@@ -104,9 +107,13 @@ button.ghost{background:#22232e}button.cyan{background:var(--cyan);color:#000}
 <div id="outFase"></div>
 <input id="hookBase" placeholder="Tema de hoje (opcional)">
 <button class="cyan" onclick="pacoteHoje()">⚡ Gerar pacote de hoje (tudo de 1 vez)</button>
-<button class="ghost" onclick="gerarHooksIA()">Só ideias e hooks</button>
-<div id="outHooks"></div>
 <p class="small">2️⃣ Grave e poste • 3️⃣ Marque o post na Agenda.</p>
+</div>
+
+<div class="card" id="cHooks"><h2>2B. Ideias e hooks 🔥 <span class="ar">▾</span></h2>
+<p class="desc">10 ganchos prontos com palavra-chave de busca.</p>
+<div class="row"><button class="cyan" onclick="gerarHooksIA()">Gerar hooks</button><button class="ghost" onclick="limpar('outHooks')">Limpar 🗑️</button></div>
+<div id="outHooks"></div>
 </div>
 
 <div class="card" id="cTokens" style="display:none"><h2>🔑 Tokens de acesso <span class="ar">▾</span></h2>
@@ -235,6 +242,12 @@ button.ghost{background:#22232e}button.cyan{background:var(--cyan);color:#000}
 <a href="#" data-tab="agenda" onclick="return showTab('agenda')"><span class="ic">📅</span><b>Agenda</b></a>
 <a href="#" data-tab="perfil" onclick="return showTab('perfil')"><span class="ic">👤</span><b>Perfil</b></a>
 </nav>
+
+<div id="cards"></div>
+
+<script>
+(function(){let w=$('cards');document.querySelectorAll('#app>.card').forEach(c=>w.appendChild(c))})();
+</script>
 
 <script>
 const U='larisantosstyle',ADMIN_EMAIL='willsradd@gmail.com',TOKEN_SALT='TikGrow2026LariShop';
@@ -392,9 +405,13 @@ function importarDados(el){let f=el.files&&el.files[0];if(!f)return;let r=new Fi
 async function salvarCfg(){let c={wa:($('cfgWa').value||'').replace(/\D/g,''),pm:$('cfgPm').value||'',ps:$('cfgPs').value||''};localStorage.setItem('tt_cfg',JSON.stringify(c));alert('Salvo neste aparelho ✅\n\nPara valer no site de TODOS: Render → api → Environment → WA_NUMBER, PRICE_M, PRICE_S (recomendo o Render, é 1 min).')}
 function loadCfg(){try{let c=JSON.parse(localStorage.getItem('tt_cfg')||'null');if(c){$('cfgWa').value=c.wa||'';$('cfgPm').value=c.pm||'';$('cfgPs').value=c.ps||''}}catch(e){}}
 /* abas */
-const TABS={dash:['cDash','cHoje','cTokens','cVendaCfg'],criar:['cRoteiro','cSemana','cLeg'],studio:['cPromptV','cPromptI','cAvatar'],shop:['cShop'],top:['cVideos'],agenda:['cAgenda','cHist'],perfil:['cBio']};
+const TABS={dash:['cDash','cHoje','cTokens','cVendaCfg'],criar:['cRoteiro','cSemana','cLeg','cHooks'],studio:['cPromptV','cPromptI','cAvatar'],shop:['cShop','cVideos'],top:['cVideos','cShop'],agenda:['cAgenda','cHist'],perfil:['cBio','cDash']};
 function showTab(t){localStorage.setItem('tt_tab',t);document.querySelectorAll('#bottom a').forEach(a=>a.classList.toggle('on',a.dataset.tab==t));
-let show=TABS[t]||[];document.querySelectorAll('#app>.card').forEach(c=>c.style.display=show.includes(c.id)?'':'none');
+let show=TABS[t]||[],box=$('cards');let n=0;
+box.querySelectorAll('.card').forEach(c=>{let want=show.includes(c.id);
+if(want&&(c.id=='cTokens'||c.id=='cVendaCfg')&&!isAdmin())want=false;
+c.style.display=want?'':'none';if(want)n++});
+box.classList.remove('cols2','cols3');if(n>=3)box.classList.add('cols3');else if(n==2)box.classList.add('cols2');
 window.scrollTo({top:0});return false}
 /* init */
 current.oninput=upd;goal.oninput=upd;views30.oninput=upd;likesTotal.oninput=upd;bioTxt.oninput=()=>localStorage.setItem('tt_bio',bioTxt.value);
