@@ -23,6 +23,12 @@ input,select,textarea,button{width:100%;padding:12px;border-radius:12px;border:1
 button{background:var(--pink);border:0;font-weight:800;cursor:pointer}button:active{transform:scale(.98)}
 button.ghost{background:#22232e}button.cyan{background:var(--cyan);color:#000}
 .row{display:flex;gap:8px}.row>*{flex:1;min-width:0}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:8px 0}
+.g3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:8px 0}
+.gitem{background:#191922;border:1px solid var(--line);border-left:4px solid var(--pink);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:6px}
+.gitem b{font-size:12.5px;line-height:1.35}
+.gitem .badge{align-self:flex-start;margin:0;font-size:10px}
+.gitem button{margin:0;padding:8px;font-size:12px}
 .copy{background:#22232e;margin-top:6px;padding:9px;font-size:12px}
 .idea{background:#191922;border-left:4px solid var(--pink);padding:12px;border-radius:10px;margin:8px 0;font-size:13.5px;line-height:1.6;overflow-wrap:anywhere;word-break:break-word}
 .badge{display:inline-block;background:var(--cyan);color:#000;font-size:11px;font-weight:800;padding:2px 10px;border-radius:99px;margin-bottom:6px}
@@ -249,7 +255,7 @@ function parseToken(t){t=String(t||'').trim().toUpperCase().replace(/[^A-Z0-9]/g
 async function tokenValido(t){try{let c=new AbortController();setTimeout(()=>c.abort(),4000);let r=await fetch(TIKTOK_API+'/api/token/check',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:t}),signal:c.signal});let j=await r.json();if(typeof j.ok=='boolean')return j}catch(e){}let p=parseToken(t);return p&&p.ok?{ok:true,exp:p.exp,local:true}:{ok:false}}
 function tokOk(){let p=parseToken(localStorage.getItem('tt_token')||'');return !!(p&&p.ok)}
 function novoToken(){let g=genToken(tkDays.value);let h=JSON.parse(localStorage.getItem('tt_tokens')||'[]');h.unshift({t:g.t,exp:g.exp,at:new Date().toLocaleString('pt-BR')});localStorage.setItem('tt_tokens',JSON.stringify(h));outToken.innerHTML=`<div class="idea" id="tkNew"><span class="badge">TOKEN NOVO</span><br><b>${g.t}</b><br><span class="small">Válido até ${new Date(g.exp*864e5).toLocaleDateString('pt-BR')}</span><br><button class="copy" onclick="copyTxt('tkNew')">Copiar</button></div>`;renderTokens();addPts(10)}
-function renderTokens(){let box=$('outTokens');if(!box)return;let h=JSON.parse(localStorage.getItem('tt_tokens')||'[]');box.innerHTML=h.length?h.map((x,i)=>{let ok=(parseToken(x.t)||{}).ok;return `<div class="idea" id="tk${i}">${ok?'':'<span class="badge">EXPIRADO</span> '}<b>${esc(x.t)}</b><br><span class="small">Expira ${new Date(x.exp*864e5).toLocaleDateString('pt-BR')}</span><div class="row"><button class="copy" onclick="copyTxt('tk${i}')">Copiar</button><button class="copy" onclick="delToken(${i})">Revogar</button></div></div>`}).join(''):'<p class="small">Nenhum token ainda.</p>'}
+function renderTokens(){let box=$('outTokens');if(!box)return;let h=JSON.parse(localStorage.getItem('tt_tokens')||'[]');box.innerHTML=h.length?'<div class="grid2">'+h.map((x,i)=>{let ok=(parseToken(x.t)||{}).ok;return `<div class="gitem">${ok?'':'<span class="badge">EXPIRADO</span>'}<b style="font-size:11.5px;word-break:break-all">${esc(x.t)}</b><span class="small">Expira ${new Date(x.exp*864e5).toLocaleDateString('pt-BR')}</span><div class="row"><button class="copy" onclick="copyTxt('tk${i}')">Copiar</button><button class="copy" onclick="delToken(${i})">Revogar</button></div></div>`}).join('')+'</div>':'<p class="small">Nenhum token ainda.</p>'}
 function delToken(i){let h=JSON.parse(localStorage.getItem('tt_tokens')||'[]');let t=h[i]&&h[i].t;h.splice(i,1);localStorage.setItem('tt_tokens',JSON.stringify(h));renderTokens();if(t)alert('Revogado. Para bloquear online, adicione em Render → api → REVOKED_TOKENS:\n'+t)}
 /* auth */
 async function doAuth(){let e=lgEmail.value.trim().toLowerCase(),p=lgPass.value||'',t=lgTik.value.trim().replace('@','');
@@ -329,7 +335,7 @@ function fotoErro(){let m=$('fotoMsg');if(m)m.textContent='Falhou (internet?). T
 async function baixarFoto(){let img=$('fotoImg');if(!img)return;try{let b=await(await fetch(img.src)).blob();let a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='meu-avatar.jpg';a.click()}catch(e){window.open(img.src,'_blank')}}
 /* shop */
 const SHOP={moda:[{n:'Vestido midi floral',t:'provador'},{n:'Cropped + saia jeans',t:'provador'},{n:'Tubinho bege',t:'erro'},{n:'Macacão casual',t:'vitrine'}],fitness:[{n:'Conjunto fitness preto',t:'fitness'},{n:'Legging modeladora',t:'fitness'},{n:'Top + short rosa',t:'fitness'}],beleza:[{n:'Base alta cobertura',t:'close'},{n:'Lip gloss',t:'close'}],acessorios:[{n:'Bolsa transversal',t:'vitrine'}],motivacao:[{n:'Ebook disciplina diária',t:'motivacao'},{n:'Planner 30 dias foco',t:'motivacao'},{n:'Mentoria saída do zero',t:'motivacao'}]};
-function renderShop(){let a=SHOP[$('shopCat').value]||SHOP.moda;$('shopList').innerHTML=a.map((x,i)=>`<div class="idea"><b>${esc(x.n)}</b> <span class="badge">ALTA</span><button class="copy" onclick="usarProduto('${esc(x.n)}','${x.t}')">USAR</button></div>`).join('')}
+function renderShop(){let a=SHOP[$('shopCat').value]||SHOP.moda;$('shopList').innerHTML='<div class="grid2">'+a.map(x=>`<div class="gitem"><b>${esc(x.n)}</b><span class="badge">ALTA</span><button class="copy" onclick="usarProduto('${esc(x.n)}','${x.t}')">USAR</button></div>`).join('')+'</div>'}
 function usarProduto(n,t){$('tema').value=n;$('tipo').value=t;$('pLook').value=n;$('pTipo').value=t;$('imgLook').value=n;$('legTema').value=n;$('capaTxt').value=n.length>24?n.slice(0,24):n;gerarUm();gerarLeg();gerarPrompt();gerarImg();gerarCapa();addPts(5);alert('Tudo gerado: roteiro, legenda, prompts e capa ✅')}
 function usarCustom(){usarProduto($('shopCustom').value||'produto da vitrine','vitrine')}
 /* hoje */
@@ -351,7 +357,7 @@ let h=JSON.parse(localStorage.getItem('tt_videos')||'[]');h.push({t,v,l,c,f,s:sc
 ['vdTitulo','vdViews','vdLikes','vdComm','vdFollows'].forEach(i=>$(i).value='')}
 function renderVideos(){let h=JSON.parse(localStorage.getItem('tt_videos')||'[]').sort((a,b)=>b.s-a.s);if(!h.length){$('outVideos').innerHTML='<p class="small">Cadastre 2+ vídeos p/ rankear.</p>';return}
 let bi=h.reduce((m,x,i)=>{let r=x.v?(x.f||0)*1000/x.v:0;return r>(h[m].v?(h[m].f||0)*1000/h[m].v:0)?i:m},0);
-$('outVideos').innerHTML=h.map((x,i)=>`<div class="idea">${i==0?'<span class="badge">🏆 MELHOR</span> ':''}${i==bi&&x.v?'<span class="badge">🔝 CONVERTE</span> ':''}<b>${esc(x.t)}</b><br><span class="small">${x.v} views • ${x.l} likes • +${x.f||0} seg (${x.v?((x.f||0)*1000/x.v).toFixed(2):'0.00'}/1k)</span><button class="copy" onclick="delVideo(${i})">Excluir</button></div>`).join('')+`<p class="small">Repita o padrão de <b>${esc(h[0].t)}</b>.</p>`}
+$('outVideos').innerHTML='<div class="grid2">'+h.map((x,i)=>`<div class="gitem">${i==0?'<span class="badge">🏆 MELHOR</span>':''}${i==bi&&x.v?'<span class="badge">🔝 CONVERTE</span>':''}<b>${esc(x.t)}</b><span class="small">${x.v} views • +${x.f||0} seg (${x.v?((x.f||0)*1000/x.v).toFixed(2):'0.00'}/1k)</span><button class="copy" onclick="delVideo(${i})">Excluir</button></div>`).join('')+'</div>'+`<p class="small">Repita o padrão de <b>${esc(h[0].t)}</b>.</p>`}
 function delVideo(i){let h=JSON.parse(localStorage.getItem('tt_videos')||'[]').sort((a,b)=>b.s-a.s);h.splice(i,1);localStorage.setItem('tt_videos',JSON.stringify(h));renderVideos()}
 /* perfil */
 function analisarPerfil(){let b=$('bioTxt').value||'',pts=0,tips=[];
