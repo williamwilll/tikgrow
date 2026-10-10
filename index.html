@@ -31,6 +31,9 @@ a.follow{display:block;text-align:center;background:var(--pink);color:#fff;paddi
 .check{display:flex;gap:8px;align-items:center;margin:6px 0;font-size:13px}.check input{width:18px}
 .pwWrap{position:relative;margin:6px 0}.pwWrap input{width:100%;margin:0;padding-right:46px}.pwEye{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:auto;margin:0;background:transparent;border:0;padding:8px;font-size:17px}
 .sec-label{font-size:11px;font-weight:800;letter-spacing:1.5px;color:var(--cyan);margin:14px 0 2px}
+.tok-ok{display:block;background:linear-gradient(90deg,#12332f,#0d2a22);border:2px solid #25F4EE;border-radius:14px;padding:14px;margin:10px 0;font-weight:800;font-size:15px;color:#25F4EE}
+.tok-err{display:block;background:#2a1216;border:1px solid #6b2733;border-radius:12px;padding:10px;margin:10px 0;font-size:12.5px;color:#ffb4c4}
+.tok-load{display:block;background:#15151f;border:1px dashed #3a3a4d;border-radius:12px;padding:10px;margin:10px 0;font-size:12.5px;color:#9a9aad}
 .card h2{cursor:pointer}.card h2::after{content:' ▾';color:var(--cyan);float:right}.card.closed h2::after{content:' ▸'}.card.closed>*:not(h2){display:none}
 @media(min-width:640px){.wrap{max-width:1140px;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:0 14px;align-items:start}.topbar,.sub,.nav,.sec-label,.wrap#app>p{grid-column:1/-1}.nav{flex-wrap:wrap}.wrap#app .card{grid-column:span 6;margin-top:0}}
 @media(min-width:1200px){.wrap#app .card{grid-column:span 4}.logo{font-size:26px}}
@@ -232,14 +235,14 @@ function delToken(i){let h=JSON.parse(localStorage.getItem('tt_tokens')||'[]');l
 const TIKTOK_KEY='awfyanz7y2bffl7m',TIKTOK_SB='sbaw1r5kzrwvnbe46p',TIKTOK_RED='https://tikgrow.onrender.com/',TIKTOK_SCOPES='user.info.profile,user.info.stats,video.list',TIKTOK_API='https://tikgrow-api.onrender.com';
 function sbOn(){try{return document.getElementById('sbMode').checked}catch(e){return true}}
 function conectarTikTok(){let k=sbOn()?TIKTOK_SB:TIKTOK_KEY;location.href='https://www.tiktok.com/v2/auth/authorize/?client_key='+k+'&scope='+encodeURIComponent(TIKTOK_SCOPES)+'&response_type=code&redirect_uri='+encodeURIComponent(TIKTOK_RED)+'&state=tikgrow'}
-async function checkTikCode(){let q=new URLSearchParams(location.search);if(q.get('state')&&q.get('state')!='tikgrow')return;let c=q.get('code');history.replaceState({},'',location.pathname);if(!c)return;tikAuth.textContent='Conectando ao TikTok...';try{
+async function checkTikCode(){let q=new URLSearchParams(location.search);if(q.get('state')&&q.get('state')!='tikgrow')return;let c=q.get('code');history.replaceState({},'',location.pathname);if(!c)return;tikAuth.innerHTML='<div class="tok-load">⏳ Conectando ao TikTok… aguarde alguns segundos</div>';try{
 let r=await fetch(TIKTOK_API+'/api/tiktok/token',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:c,env:sbOn()?'sb':'prod'})});
 let raw=await r.text();let t;try{t=JSON.parse(raw)}catch(_){throw new Error('HTTP '+r.status+' '+raw.slice(0,80))}
-if(!t.access_token)throw new Error(t.error_description||t.error||'sem token');sessionStorage.setItem('tt_tok',t.access_token);
+if(!t.access_token)throw new Error(t.error_description||t.error||'sem token');sessionStorage.setItem('tt_tok',t.access_token);sessionStorage.setItem('tt_tok_name',m.display_name||'');
 let m=await(await fetch(TIKTOK_API+'/api/tiktok/me',{headers:{Authorization:'Bearer '+t.access_token}})).json();
 if(m.follower_count!=null){current.value=m.follower_count;if(m.likes_count!=null)likesTotal.value=m.likes_count;upd();salvarSnap()}
-tikAuth.innerHTML=`✅ <b>${esc(m.display_name||'Conectado')}</b> • ${Number(m.follower_count||0).toLocaleString('pt-BR')} seguidores • ${Number(m.likes_count||0).toLocaleString('pt-BR')} curtidas`;
-}catch(e){let msg='';try{msg=(e&&e.message)||''}catch(_){}localStorage.setItem('tt_tiktok_code',c);tikAuth.textContent='Falha: '+msg.slice(0,140)}};
+tikAuth.innerHTML=`<div class="tok-ok">✅ CONECTADO AO TIKTOK</div><div class="small" style="margin-top:6px">Conta: <b>${esc(m.display_name||'conectada')}</b> • ${Number(m.follower_count||0).toLocaleString('pt-BR')} seguidores • ${Number(m.likes_count||0).toLocaleString('pt-BR')} curtidas • ${Number(m.video_count||0)} vídeos</div>`;
+}catch(e){let msg='';try{msg=(e&&e.message)||''}catch(_){}localStorage.setItem('tt_tiktok_code',c);tikAuth.innerHTML=`<div class="tok-err">❌ Não foi possível conectar: ${esc(msg.slice(0,140))}<br>Clique em Conectar novamente e autorize sem recarregar a página.</div>`}};
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 let mode='in';
 function tab(m){mode=m;tabIn.className=m=='in'?'':'ghost';tabUp.className=m=='up'?'':'ghost';lgName.style.display=m=='up'?'block':'none';lgBtn.textContent=m=='up'?'Criar conta':'Entrar';lgMsg.textContent=''}
@@ -259,7 +262,7 @@ async function doAuth(){
 function isAdmin(){try{return (localStorage.getItem('tt_session')||'')==ADMIN_EMAIL}catch(e){return false}}
 function verSenha(){let p=lgPass.type=='password';lgPass.type=p?'text':'password';pwBtn.textContent=p?'🙈':'👁️'}
 function checkAuth(){let s=localStorage.getItem('tt_session'),u=getUsers();let adm=s==ADMIN_EMAIL;if(s&&u[s]&&(adm||tokOk())){loginGate.style.display='none';app.style.display='block';userHi.textContent='Logada: '+(u[s].n||s)+' • @'+u[s].tik+(adm?' • ADMIN':'');fixTik.value=u[s].tik;if(adm)renderTokens()}else{localStorage.removeItem('tt_session');loginGate.style.display='flex';app.style.display='none'}}
-function doLogout(){localStorage.removeItem('tt_session');localStorage.removeItem('tt_token');checkAuth()}
+function doLogout(){localStorage.removeItem('tt_session');localStorage.removeItem('tt_token');sessionStorage.removeItem('tt_tok');checkAuth()}
 async function puxarDadosConta(manual){
  let s=localStorage.getItem('tt_session'),u=getUsers(),tik=((u[s]&&u[s].tik)||fixTik.value||U).replace('@','').trim();if(!tik)return;
  tikInfo.textContent='Validando @'+tik+'...';
