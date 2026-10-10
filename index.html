@@ -246,10 +246,6 @@ button.ghost{background:#22232e}button.cyan{background:var(--cyan);color:#000}
 <div id="cards"></div>
 
 <script>
-(function(){let w=$('cards');document.querySelectorAll('#app>.card').forEach(c=>w.appendChild(c))})();
-</script>
-
-<script>
 const U='larisantosstyle',ADMIN_EMAIL='willsradd@gmail.com',TOKEN_SALT='TikGrow2026LariShop';
 const TIKTOK_KEY='awfyanz7y2bffl7m',TIKTOK_SB='sbaw1r5kzrwvnbe46p',TIKTOK_RED='https://tikgrow.onrender.com/',TIKTOK_SCOPES='user.info.profile,user.info.stats,video.list',TIKTOK_API='https://tikgrow-api.onrender.com';
 const $=id=>document.getElementById(id);
@@ -422,5 +418,6 @@ try{checkTikCode()}catch(e){}
 try{let _l=JSON.parse(localStorage.getItem('tt_last')||'null');if(_l&&!localStorage.getItem('tt_session')){lgEmail.value=_l.e||'';lgTik.value=_l.t||''}}catch(e){}
 try{if(new URLSearchParams(location.search).get('admin')||localStorage.getItem('tt_admin')){localStorage.setItem('tt_admin','1');$('lgToken').style.display='none';$('admNote').style.display='block'}}catch(e){}
 showTab(localStorage.getItem('tt_tab')||'dash');
+(function(){let box=$('cards');[...document.querySelectorAll('#app>.card')].forEach(c=>box.appendChild(c));showTab(localStorage.getItem('tt_tab')||'dash')})();
 </script>
 </body></html>
